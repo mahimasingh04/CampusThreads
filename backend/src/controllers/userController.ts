@@ -95,7 +95,7 @@ export const signinController = async(req : Request, res: Response) : Promise<vo
 
 export  const logoutController =  async(req : Request, res:  Response) => {
     try {
-      return res.status(200).cookie("token", "").json({
+      return res.status(200).cookie("tokenInfo", "").json({
         success: true,
         message: "logout successfully",
       });

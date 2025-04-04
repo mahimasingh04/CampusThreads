@@ -13,20 +13,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum ContentType {
+  TEXT
+  IMAGES
+  VIDEOS
+  POLLS
+}
+
+   
+
 model User {
   id          String      @id @default(uuid())
   email       String?  @unique
   name        String? 
   password    String
+   role        String   @default("USER") // "admin", "moderator", "user"
   post       Post[]
   communities UserCommunity[]
-  
+  customFeeds CustomFeed[]
 }
 
 model Post {
      id   String   @id @default(uuid())
      title  String
      content  String
+     contentType    ContentType
      published Boolean   @default(false)
      author    User      @relation(fields: [authorId] , references: [id])
      authorId   String 
@@ -35,18 +52,23 @@ model Post {
       flairId       String
       flair         Flair     @relation(fields: [flairId], references: [id])
 
+
 }
 
 model Community {
   id   String     @id    @default(uuid())
   name   String   @unique
   description String
-  flair   Flair[]
+  ownerId  String 
+  flair   Flair[] 
+  rules   String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  joinRequests Boolean @default(false)
+  
   post      Post[]
   users     UserCommunity[]
-
+  customFeeds CustomFeedCommunity[]
 }
 
 model Flair {
@@ -63,6 +85,26 @@ model UserCommunity {
    communityId String
   community Community @relation(fields: [communityId], references: [id])
   @@id([userId, communityId])
+}
+
+model CustomFeed {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  communities CustomFeedCommunity[]
+}
+
+model CustomFeedCommunity {
+  customFeedId String
+  customFeed   CustomFeed @relation(fields: [customFeedId], references: [id])
+  communityId  String
+  community    Community  @relation(fields: [communityId], references: [id])
+  addedAt      DateTime   @default(now())
+  @@id([customFeedId, communityId])
 }
 
 

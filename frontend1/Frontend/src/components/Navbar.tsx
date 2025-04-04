@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, MessageSquare,  Menu, BellPlus, CirclePlus } from 'lucide-react';
+import { Search, MessageSquare, Menu, BellPlus, CirclePlus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
@@ -8,7 +9,7 @@ const Navbar: React.FC = () => {
     <nav className="bg-[#28264D] px-4 py-3 flex items-center justify-between">
       {/* Logo */}
       <div className="flex items-center">
-        <h1 className="text-white text-xl font-bold">MEMHACK</h1>
+        <Link to="/" className="text-white text-xl font-bold">MEMHACK</Link>
       </div>
 
       {/* Search Bar */}
@@ -29,11 +30,13 @@ const Navbar: React.FC = () => {
 
       {/* Navigation Icons */}
       <div className="flex items-center space-x-3">
-        
         <NavIcon icon={<MessageSquare className="h-5 w-5" />} />
-        <NavIcon icon={<  CirclePlus className="h-5 w-5" />} />
-        <NavIcon icon={<BellPlus className="h-5 w-5" />} />
-       
+        <Link to="/create-community">
+          <NavIcon icon={<CirclePlus className="h-5 w-5" />} />
+        </Link>
+        <Link to="/create-post">
+          <NavIcon icon={<BellPlus className="h-5 w-5" />} />
+        </Link>
         <NavIcon icon={<Menu className="h-5 w-5" />} />
       </div>
     </nav>
