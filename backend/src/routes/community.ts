@@ -14,6 +14,7 @@ const communityRouter = express.Router()
 
 communityRouter.post('/createComm', authMiddleware, createCommunities);
 communityRouter.post('/joinComm/:communityId', authMiddleware, joinCommunities);
+
 communityRouter.post('/:communityId/tags', authMiddleware, isCommunityModerator, addTags);
 
 // Custom feed routes

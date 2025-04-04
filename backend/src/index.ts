@@ -16,6 +16,7 @@ app.use(cookieParser());
 
 app.use("/api/user", userRouter);
 app.use("/api/community", communityRouter);
+app.use("/api/post", postRouter);
 app.use("/api/:communityId", postRouter);
 
 const port = process.env.PORT || 3000;
