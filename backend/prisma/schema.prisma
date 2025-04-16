@@ -17,6 +17,7 @@ enum Role {
   USER
   MODERATOR
   ADMIN
+  UNKNOWN @map("UNKNOWN")
 }
 
 enum ContentType {
@@ -30,13 +31,21 @@ enum ContentType {
 
 model User {
   id          String      @id @default(uuid())
-  email       String?  @unique
-  name        String? 
+  email       String?     @unique
+  bio         String?
+  name        String 
+  skills      String?
+  developerProfileLinks   String?
+  college     String?
   password    String
-  role        String   @default("USER") // "admin", "moderator", "user"
-  post       Post[]
+  role        Role        @default(USER) @map("role")
+  post        Post[]
   communities UserCommunity[]
   customFeeds CustomFeed[]
+  savedPosts  SavedPost[]
+  hackathonPosts HackathonPost[]    @relation("UserPosts")
+  joinRequests  Request[] @relation("UserRequests")
+  likes       Like[]
 }
 
 model Post {
@@ -45,14 +54,16 @@ model Post {
      content  String
      contentType    ContentType
      published Boolean   @default(false)
-     author    User      @relation(fields: [authorId] , references: [id])
+     author    User      @relation(fields: [authorId] , references: [id], onDelete: Cascade)
      authorId   String 
      communityId String
-     community  Community @relation(fields: [communityId], references: [id])
-      flairId       String
-      flair         Flair     @relation(fields: [flairId], references: [id])
-
-
+     community  Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+     flairId    String
+     flair      Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
+     savedBy    SavedPost[]
+     likes      Like[]
+     createdAt  DateTime  @default(now())
+     updatedAt  DateTime?  @updatedAt
 }
 
 model Community {
@@ -74,15 +85,15 @@ model Flair {
   id            String       @id @default(uuid())
   name          String
   communityId   String
-  community     Community @relation(fields: [communityId], references: [id])
+  community     Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   posts         Post[]
 }
 
 model UserCommunity {
   userId   String
-  user   User  @relation(fields: [userId], references: [id])
-   communityId String
-  community Community @relation(fields: [communityId], references: [id])
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId String
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   @@id([userId, communityId])
 }
 
@@ -91,7 +102,7 @@ model CustomFeed {
   name        String
   description String?
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   communities CustomFeedCommunity[]
@@ -99,12 +110,58 @@ model CustomFeed {
 
 model CustomFeedCommunity {
   customFeedId String
-  customFeed   CustomFeed @relation(fields: [customFeedId], references: [id])
+  customFeed   CustomFeed @relation(fields: [customFeedId], references: [id], onDelete: Cascade)
   communityId  String
-  community    Community  @relation(fields: [communityId], references: [id])
+  community    Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
   addedAt      DateTime   @default(now())
   @@id([customFeedId, communityId])
 }
 
+model SavedPost {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  savedAt   DateTime @default(now())
+  @@unique([userId, postId])
+}
 
+model HackathonPost {
+  id             String     @id @default(uuid())
+  title          String     // "Need 3 devs for ETHGlobal!"
+  description    String     // Detailed info about the hackathon
+  location       String     // "Online" or "MIT Campus"
+  techStack      String[]   // ["React", "Solidity", "AI"]
+  slotsTotal     Int        // Total slots needed (e.g., 5)
+  slotsFilled    Int        @default(0) // Starts at 0
+  genderReq      Json?      // { girls: 2, boys: 3 } (optional)
+  isActive       Boolean    @default(true) // Until slotsFilled == slotsTotal
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  author         User       @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId       String
+  requests       Request[]  // Join requests for this post
+}
 
+model Request {
+  id          String   @id @default(uuid())
+  hackathonpost        HackathonPost    @relation(fields: [hackathonpostId], references: [id], onDelete: Cascade)
+  hackathonpostId      String
+  user        User     @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  status      String   @default("PENDING") // "PENDING" | "ACCEPTED" | "REJECTED"
+  createdAt   DateTime @default(now())
+  @@unique([hackathonpostId, userId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  likeSource String   @default("FEED") // "FEED" or "POST_PAGE"
+  createdAt DateTime @default(now())
+  @@unique([postId, userId]) // Prevent duplicate likes
+}
