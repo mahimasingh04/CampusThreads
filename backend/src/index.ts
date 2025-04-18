@@ -15,12 +15,21 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin:  'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   exposedHeaders: ['set-cookie']
 }));
+
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  res.status(204).send();
+});
 
 // Middleware
 app.use(express.json());
@@ -45,4 +54,5 @@ console.log("database:", process.env.DATABASE_URL);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  console.log(`CORS configured for origin: http://localhost:5173`);
 });

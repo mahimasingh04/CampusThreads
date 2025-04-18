@@ -60,7 +60,7 @@ const Signin: React.FC = () => {
         login(data.token);
         
         // Redirect to the page they were trying to access, or home
-        const from = location.state?.from?.pathname || '/';
+        const from = location.state?.from?.pathname || '/create-community';
         navigate(from, { replace: true });
       } else {
         setError(data.message || 'Invalid email or password');
