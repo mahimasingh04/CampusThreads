@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useSetRecoilState } from 'recoil';
-import { communityModalState } from '@/atoms/communityAtoms';
+import { communityModalState } from '@/store/atom';
 import { Plus } from 'lucide-react';
 
 export default function CreateCommunityButton() {

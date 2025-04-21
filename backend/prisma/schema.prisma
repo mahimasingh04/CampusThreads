@@ -14,7 +14,7 @@ datasource db {
 }
 
 enum Role {
-  USER
+  USER 
   MODERATOR
   ADMIN
   UNKNOWN @map("UNKNOWN")
@@ -46,6 +46,7 @@ model User {
   hackathonPosts HackathonPost[]    @relation("UserPosts")
   joinRequests  Request[] @relation("UserRequests")
   likes       Like[]
+  userVisits   communityVisit[]
 }
 
 model Post {
@@ -79,6 +80,8 @@ model Community {
   post      Post[]
   users     UserCommunity[]
   customFeeds CustomFeedCommunity[]
+  communityVisits communityVisit[]
+  
 }
 
 model Flair {
@@ -138,7 +141,7 @@ model HackathonPost {
   genderReq      Json?      // { girls: 2, boys: 3 } (optional)
   isActive       Boolean    @default(true) // Until slotsFilled == slotsTotal
   createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  updatedAt     DateTime?  @updatedAt 
   author         User       @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
   authorId       String
   requests       Request[]  // Join requests for this post
@@ -164,4 +167,17 @@ model Like {
   likeSource String   @default("FEED") // "FEED" or "POST_PAGE"
   createdAt DateTime @default(now())
   @@unique([postId, userId]) // Prevent duplicate likes
+}
+
+model communityVisit {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id])
+  visitedAt   DateTime @default(now())
+  
+  @@unique([userId, communityId]) // One visit record per user per community
+  @@index([userId])              // Faster querying for user-specific visits
+  @@index([visitedAt])           // Optimized for sorting by recency
 }

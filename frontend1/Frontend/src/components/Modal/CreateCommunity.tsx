@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { X, ChevronRight, University } from 'lucide-react';
-import { communityModalState, communityFormState } from '@/atoms/communityAtoms';
+import { communityModalState, communityFormState } from '@/store/atom';
 import {
   Dialog,
   DialogContent,

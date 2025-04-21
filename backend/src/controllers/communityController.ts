@@ -448,6 +448,106 @@ export const getUserCustomFeeds = async(req: Request, res: Response): Promise<vo
     }
 };
 
+export const recentlyViewedCommunities = async(req: Request, res: Response): Promise<void> => {
+    try {
+          
+        const userId = req.userId 
+
+        const {communityId} = req.params
+        if( !userId || !communityId) {
+            res.status(400).json({message : "user Id and communityId are important"})
+            return;
+        }
+
+        //check if the communityExists
+        const community = await prisma.community.findUnique({
+            where : {
+                id : communityId
+            }
+        })
+        if(!community) {
+            res.status(400).json({message: "community doesnt exists"})
+            return;
+        }
+        const visit = await prisma.communityVisit.upsert({
+            where: {
+                userId_communityId: {
+                  userId,
+                  communityId
+                }
+              },
+              update: {
+                visitedAt: new Date()
+              },
+              create: {
+                userId,
+                communityId,
+                visitedAt: new Date()
+            },
+            include: {
+              community: {
+                select: {
+                  id: true,
+                  name: true,
+                 
+                }
+              }
+            }
+        })
+        res.status(200).json({
+            status : "success",
+            message : "community vosited successfully",
+            data: visit
+        })
+    }catch (error) {
+      res.status(500).json({message : error})
+
+    }
+}
+
+
+export const getRecentlyVisitedCommunities = async(req: Request, res :Response) : Promise<void> => {
+    try {
+       
+        const userId = req.userId;
+        if(!userId) {
+            res.status(401).json({message : "Unauthorised : User ID is missing"})
+            return;
+        }
+        const limit : number = parseInt(req.query.limit as string) || 5;
+
+        const visits = await prisma.communityVisit.findMany({
+            where : {userId},
+            orderBy : {visitedAt : 'desc'},
+            take : limit,
+            select : {
+                visitedAt : true,
+                community : {
+                   select : {
+                    id: true,
+                    name : true 
+                   }
+                }
+            }
+        });
+        if (!visits || visits.length === 0) {
+            res.status(404).json({message : "No recently visited communities yet" })
+            return;
+        }
+         
+        const recentCommunities = visits.map(visit => ({
+            ...visit.community,
+            lastVisited: visit.visitedAt
+          }));
+
+          res.status(200).json(recentCommunities);
+    }catch(error){
+        console.error("Error retreiving communities:", error);
+        res.status(500).json({message : "Internal server error"})
+
+
+    }
+}
 
 
 
