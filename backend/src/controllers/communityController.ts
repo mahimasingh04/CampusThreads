@@ -24,6 +24,12 @@ export const createCommunities = async(req: Request , res : Response): Promise<v
             return;
           }
 
+           // Validate rules is an array of objects
+        if (!Array.isArray(rules )) {
+            res.status(400).json({ message: "Rules must be an array" });
+            return
+        }
+
          const existCommunity = await prisma.community.findUnique({
             where: { name }
         })
@@ -40,7 +46,7 @@ export const createCommunities = async(req: Request , res : Response): Promise<v
                 description,
                 
                 ownerId,
-                rules
+                rules: JSON.stringify(rules)
             }
         });
 

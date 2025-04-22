@@ -69,12 +69,17 @@ export default function CreateCommunityModal() {
     }
 
     try {
-      const response = await fetch('/api/community/createComm', {
+      const response = await fetch('http://localhost:3000/api/community/createComm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        credentials: 'include', // Include cookies in the request
+        body: JSON.stringify({
+          name : formData.name,
+          description : formData.description,
+          rules : formData.rules,
+        }),
       });
 
       if (!response.ok) {
@@ -85,6 +90,7 @@ export default function CreateCommunityModal() {
       handleClose();
     } catch (err: any) {
       setError(err.message);
+      console.log(err.message);
     }
   };
 
