@@ -41,7 +41,7 @@ const NavbarFeed : React.FC = () => {
               <circle cx="50" cy="35" r="15" fill="currentColor" />
               <path d="M25 65C25 57.268 35.67 50 50 50C64.33 50 75 57.268 75 65" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
             </svg>
-            <span className="font-bold text-xl text-[#F97316]">CampusThreads</span>
+            <span className="font-bold text-xl text-white">Campus Threads</span>
           </Link>
         </div>
 

@@ -44,7 +44,7 @@ export const registerController = async(req : Request, res: Response): Promise<v
 
 export const signinController = async(req : Request, res: Response) : Promise<void> => {
     try {
-       const {email, name, password} = req.body
+       const {email,  password} = req.body
 
        const userExists = await prisma.user.findUnique ({
         where : {email} 
@@ -69,6 +69,11 @@ export const signinController = async(req : Request, res: Response) : Promise<vo
       }
 
       const token = generateToken(userExists?.id || "")
+      const userData = {
+        id: userExists.id,
+        name: userExists.name,
+        email: userExists.email
+      };
        res
       .status(200)
       .cookie("tokenInfo", token, {
@@ -80,6 +85,7 @@ export const signinController = async(req : Request, res: Response) : Promise<vo
         success: true,
         message: "user logged in successfully",
         token,
+        user : userData
       });
     }catch(error) {
       console.error(error);

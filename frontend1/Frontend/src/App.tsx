@@ -1,36 +1,61 @@
-import React from 'react'
-import { RecoilRoot } from "recoil";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TooltipProvider } from '@/components/ui/tooltip';
+
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import LandingPage from "./pages/LandingPage"
+import Login from "./pages/SignIn1";
+import SignUp from "./pages/SignUp1";
 
-
-import MainLayout from "./components/layout/Mainlayout";
+import { RecoilRoot } from "recoil";
 import Feed from "./pages/Feed";
+import MainLayout from "./components/layout/Mainlayout";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+
 
 
 const queryClient = new QueryClient();
 
-const App : React.FC = () => (
-  <RecoilRoot>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        
-        <Sonner />
-        <Router>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Feed />} />
-              
-            </Route>
-            
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signin" element={<Login/>} />
+            <Route path="/signup" element={<SignUp />} />
+  
+            <Route
+              element={
+                <RecoilRoot>
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                </RecoilRoot>
+              }
+            >
+
+              <Route
+                path="/feed"
+                element={
+                  <ErrorBoundary>
+                    <Feed />
+                  </ErrorBoundary>
+                }
+              />
+              </Route>
           </Routes>
-        </Router>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </RecoilRoot>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
-
-export default App
+export default App;
