@@ -1,22 +1,10 @@
 
 import { atom } from 'recoil';
 
-import { Community, CustomFeed, Post, User ,  CommunityFormData } from '@/types';
+import { Community, CustomFeed, Post, User ,  } from '@/types';
 
 
-export const communityModalState = atom({
-  key: 'communityModalState',
-  default: false,
-});
 
-export const communityFormState = atom<CommunityFormData>({
-  key: 'communityFormState',
-  default: {
-    name: '',
-    description: '',
-    rules: ['Be respectful', 'Follow Reddit content policy'],
-  },
-});
 
 export const currentUserState = atom<User | null>({
   key: 'currentUserState',

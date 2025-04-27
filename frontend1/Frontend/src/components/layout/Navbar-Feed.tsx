@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { currentUserState } from '@/store/atom';
+import { currentUserState } from '@/store/Atom';
 
 const NavbarFeed : React.FC = () => {
   const [currentUser] = useRecoilState(currentUserState);

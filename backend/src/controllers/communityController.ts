@@ -556,4 +556,6 @@ export const getRecentlyVisitedCommunities = async(req: Request, res :Response) 
 }
 
 
-
+export const getCommunityDetails = async(req: Request, res: Response) : Promise<void> => {
+    
+}

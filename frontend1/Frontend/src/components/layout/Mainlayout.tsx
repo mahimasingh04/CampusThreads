@@ -11,7 +11,7 @@ import {
   customFeedsState, 
   mockDataLoadedState,
   sidebarCollapsedState,
-} from '@/store/atom';
+} from '@/store/Atom';
 import { initializeMockData } from '@/mockData';
 
 const MainLayout: React.FC = () => {
@@ -39,9 +39,9 @@ const MainLayout: React.FC = () => {
       <NavbarFeed />
       <Sidebar />
       <main className={`pt-14 transition-all duration-300 ${
-        sidebarCollapsed ? 'pl-16' : 'pl-64'
+        sidebarCollapsed ? 'pl-20' : 'pl-70 '
       }`}>
-        <div className="container py-6">
+        <div className="container py-6 ">
           <Outlet />
         </div>
       </main>

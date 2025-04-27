@@ -1,5 +1,5 @@
 import { sidebarCollapsedState, customFeedsState , joinedCommunitiesState, 
-    recentCommunitiesState,} from '@/store/atom'
+    recentCommunitiesState,} from '@/store/Atom'
 import React, {useState} from 'react'
 
 import {Link} from 'react-router-dom'
@@ -34,7 +34,7 @@ const Sidebar : React.FC = () => {
                         {sidebarCollapsed ? <ChevronRight className="h-3 w-3"/> : <ChevronLeft className="h-3 w-3" />}
                     </Button>
                 </div>
-       <ScrollArea className="flex-1">
+       <ScrollArea className="flex-1 overflow-y-auto">
          <div className="p-3 space-y-3">
 
             {/* Main navigation */}

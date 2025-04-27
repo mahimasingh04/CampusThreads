@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import LandingPage from "./pages/LandingPage"
 import Login from "./pages/SignIn1";
 import SignUp from "./pages/SignUp1";
-
+import CreateCommunity  from "./pages/CreateCommunity";
 import { RecoilRoot } from "recoil";
 import Feed from "./pages/Feed";
 import MainLayout from "./components/layout/Mainlayout";
@@ -50,6 +50,7 @@ const App = () => (
                   </ErrorBoundary>
                 }
               />
+              <Route path="/create-community" element={<CreateCommunity />} />
               </Route>
           </Routes>
         </AuthProvider>
