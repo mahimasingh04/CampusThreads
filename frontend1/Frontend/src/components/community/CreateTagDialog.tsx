@@ -26,7 +26,7 @@ import * as z from "zod";
 import { toast } from "sonner";
 import {  useRecoilState, useRecoilValue} from "recoil";
 import { communityTagState} from "@/store/CommunityState";
-import { createCommunityTag } from "@/api/community";
+import { createCommunityTag } from "@/api/Community";
 import {Tag } from "@/types";
 
 const tagFormSchema = z.object({

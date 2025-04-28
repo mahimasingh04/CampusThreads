@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Community } from "@/types";
 import { useState, useEffect } from "react";
-import { fetchCommunityById, joinCommunity, leaveCommunity } from "@/api/community";
+import { fetchCommunityById, joinCommunity, leaveCommunity } from "@/api/Community";
 import { useRecoilState } from "recoil";
 import { currentUserState } from "@/store/Atom";
 import { toast } from "sonner";

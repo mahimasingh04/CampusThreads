@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil';
-import { Community, Post, Tag, Rule, User, SortOption } from '@/types';
+import { Community, Post, Tag,  User, SortOption, Rules } from '@/types';
 import {
     fetchCommunityById,
     fetchCommunityPosts,
@@ -8,7 +8,7 @@ import {
     fetchCommunityTags,
      fetchCommunityModerators,
      createCommunityTag
-  } from '@/api/community';
+  } from '@/api/Community';
 
 
 
@@ -27,8 +27,9 @@ export const sortOptionState = atom<SortOption>({
   default: 'hottest',
 });
 
-export const communityState = selector<Community | null>({
-  key: 'communityState',
+
+export const communityDetailsState = selector<Community | null >({
+  key: 'communityDetailsState',
   get: async ({ get }) => {
     const communityId = get(communityIdState);
     if (!communityId) return null;
@@ -43,57 +44,23 @@ export const communityState = selector<Community | null>({
   },
 });
 
-export const communityDataState = selector({
-  key: 'communityDataState',
-  get: async ({ get }) => {
-    const communityId = get(communityIdState);
-    if (!communityId) {
-      return {
-        posts: [],
-        tags: [],
-        rules: [],
-        moderators: [],
-      };
-    }
+export const communityRulesState = selector<Rules[]> ({
+  key:'communityRulesState',
+  get: async({get}) => {
+     const communityId = get(communityIdState);
+     if(!communityId) return[];
+     try{
+         const rules = await fetchCommunityRules(communityId);
+         return rules;
+     }catch(error) {
+      console.error('error fetching rules:', error);
+      return [];
+     }
+  }
+})
 
-    try {
-      const [posts, tags, rules, moderators] = await Promise.all([
-        fetchCommunityPosts(communityId),
-        fetchCommunityTags(communityId),
-        fetchCommunityRules(communityId),
-        fetchCommunityModerators(communityId),
-      ]);
 
-      const sortOption = get(sortOptionState);
-      const sortedPosts = [...posts].sort((a, b) => {
-        if (sortOption === "newest") {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        } else if (sortOption === "oldest") {
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        } else { // hottest
-          return b.upvoteCount - a.upvoteCount;
-        }
-      });
-
-      return {
-        posts: sortedPosts,
-        tags,
-        rules,
-        moderators,
-      };
-    } catch (error) {
-      console.error('Error fetching community data:', error);
-      return {
-        posts: [],
-        tags: [],
-        rules: [],
-        moderators: [],
-      };
-    }
-  },
-});
-
-export const communityMmeberCountState = selector<number>({
+export const communityMemberCountState = selector<number>({
     key:'communityMemberCountState',
     get: async({get}) => {
         const communityId = get(communityIdState)
@@ -111,19 +78,23 @@ export const communityMmeberCountState = selector<number>({
     }
 })
   
-export const communityTagState = selector<Tag[]> ({
+export const communityTagState = atom<Tag[]> ({
     key: 'communityTagState',
-    get: async({get}) => {
-        const communityId = get(communityIdState)
-        if(!communityId) {
-            return []
-        }
-        try {
-          const tags = await fetchCommunityTags(communityId)
-            return tags;
-        }catch(error) {
-            console.error('error fetching community tags: ', error)
-            return []
-        }
-    }
+    default: []
 })
+
+export const communityModeratorsState = selector<string[]>({
+  key: 'communityModeratorsState',
+  get: async ({get}) => {
+    const communityId = get(communityIdState);
+    if (!communityId) return [];
+    
+    try {
+      const mods = await fetchCommunityModerators(communityId);
+      return mods;
+    } catch (error) {
+      console.error('Error fetching community moderators:', error);
+      return [];
+    }
+  }
+});
