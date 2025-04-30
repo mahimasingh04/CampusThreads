@@ -1,8 +1,8 @@
 import { atom, selector } from 'recoil';
-import { Community, Post, Tag,  User, SortOption, Rules } from '@/types';
+import { Community, Post, Tag,  User, SortOption, Rules, Moderator } from '@/types';
 import {
     fetchCommunityById,
-    fetchCommunityPosts,
+    
     fetchCommunityMembers,
     fetchCommunityRules,
     fetchCommunityTags,
@@ -28,6 +28,8 @@ export const sortOptionState = atom<SortOption>({
 });
 
 
+
+
 export const communityDetailsState = selector<Community | null >({
   key: 'communityDetailsState',
   get: async ({ get }) => {
@@ -50,8 +52,8 @@ export const communityRulesState = selector<Rules[]> ({
      const communityId = get(communityIdState);
      if(!communityId) return[];
      try{
-         const rules = await fetchCommunityRules(communityId);
-         return rules;
+         const response = await fetchCommunityById(communityId);
+         return response.rules;
      }catch(error) {
       console.error('error fetching rules:', error);
       return [];
@@ -83,11 +85,11 @@ export const communityTagState = atom<Tag[]> ({
     default: []
 })
 
-export const communityModeratorsState = selector<string[]>({
+export const communityModeratorsState = selector<Moderator[]>({
   key: 'communityModeratorsState',
   get: async ({get}) => {
     const communityId = get(communityIdState);
-    if (!communityId) return [];
+    if (!communityId) return []
     
     try {
       const mods = await fetchCommunityModerators(communityId);
@@ -97,4 +99,4 @@ export const communityModeratorsState = selector<string[]>({
       return [];
     }
   }
-});
+}); 
