@@ -19,10 +19,11 @@ export interface User {
     name: string;
     description: string;
     banner : string;
-    memberCount: number;
+    membersCount? : number;
     createdAt: string;
     avatarUrl: string;
     bannerUrl?: string;
+    posts : Post[];
     rules: Rule[];
     tags : Tag[];
     moderators: User[];
@@ -71,13 +72,19 @@ export interface User {
 
   export interface Rules {
     id: string;
+    order: number;
     communityId : string;
     title : string;
     description: string;
 
 
   }
-  
+  export interface RulesForm {
+    id: string;
+    title : string;
+    description : string,
+    order: number
+  }
   export interface CustomFeed {
     id: string;
     name: string;
@@ -145,4 +152,13 @@ export type CollaborationRole = {
   location: string;
   teamSize: number;
   currentMembers: number;
+}
+
+export interface Moderator {
+  id: string,
+  avatar : string,
+  username: string,
+  avatarUrl? : string
+  communityId: string
+
 }

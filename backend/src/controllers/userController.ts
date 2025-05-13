@@ -10,7 +10,8 @@ export const registerController = async(req : Request, res: Response): Promise<v
 
 
     try{
-       const {email, name, password} = req.body
+      
+      const { email, name, password } = req.body;
        const user = await prisma.user.findUnique({
         where: { email },
     });
@@ -39,7 +40,7 @@ export const registerController = async(req : Request, res: Response): Promise<v
         message: error,
       });
     }
-    
+
 }
 
 export const signinController = async(req : Request, res: Response) : Promise<void> => {
@@ -88,7 +89,7 @@ export const signinController = async(req : Request, res: Response) : Promise<vo
         user : userData
       });
     }catch(error) {
-      console.error(error);
+          console.error(error);
          res.status(500).json({
             success: false,
             message: error,

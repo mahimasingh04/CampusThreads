@@ -19,19 +19,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Tag } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { toast } from "sonner";
-import {  useRecoilState, useRecoilValue} from "recoil";
-import { communityTagState} from "@/store/CommunityState";
-import { createCommunityTag } from "@/api/Community";
-import {Tag } from "@/types";
+import { toast } from "sonner"; // Replaced useToast with sonner
 
 const tagFormSchema = z.object({
-  name: z.string().min(2, "Tag name must be at least 2 characters").max(50),
-  description: z.string().min(10, "Description must be at least 10 characters").max(500),
+  name: z.string().min(2).max(50),
+  description: z.string().min(10).max(500),
   isPublic: z.boolean(),
   accessCode: z.string().optional(),
 });
@@ -40,38 +37,35 @@ type TagFormValues = z.infer<typeof tagFormSchema>;
 
 type CreateTagDialogProps = {
   communityId: string;
+  onTagCreated: (tag: Tag) => void;
 };
 
-const CreateTagDialog = ({ communityId }: CreateTagDialogProps) => {
-  const [tags, setTags] = useRecoilState<Tag[]>(communityTagState);
+const CreateTagDialog = ({ communityId, onTagCreated }: CreateTagDialogProps) => {
   const form = useForm<TagFormValues>({
     resolver: zodResolver(tagFormSchema),
     defaultValues: {
       name: "",
       description: "",
       isPublic: true,
-      accessCode: "",
     },
   });
 
-  const watchIsPublic = form.watch("isPublic");
-
-  const onSubmit = async (data: TagFormValues) => {
-    try {
-      const newTag = await createCommunityTag(communityId, {
-        name: data.name,
-        description: data.description,
-        isPublic: data.isPublic,
-        accessCode: data.isPublic ? undefined : data.accessCode,
-      });
-
-      setTags([...tags, newTag]);
-      form.reset();
-      toast.success("Tag created successfully");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create tag");
-    }
+  const onSubmit = (data: TagFormValues) => {
+    const newTag: Tag = {
+      id: `tag-${Date.now()}`,
+      name: data.name.toUpperCase(),
+      description: data.description,
+      communityId,
+      isPublic: data.isPublic,
+      ...(data.isPublic ? {} : { accessCode: data.accessCode }),
+    };
+    
+    onTagCreated(newTag);
+    form.reset();
+    toast.success("Tag created successfully"); // Using sonner toast
   };
+
+  const watchIsPublic = form.watch("isPublic");
 
   return (
     <Dialog>
@@ -164,7 +158,6 @@ const CreateTagDialog = ({ communityId }: CreateTagDialogProps) => {
                         type="text"
                         className="bg-slate-900 border-slate-700 text-white"
                         placeholder="Enter private access code"
-                        required={!watchIsPublic}
                       />
                     </FormControl>
                     <FormDescription className="text-slate-400">

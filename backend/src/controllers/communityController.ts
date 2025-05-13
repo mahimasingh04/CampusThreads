@@ -30,6 +30,16 @@ export const createCommunities = async(req: Request , res : Response): Promise<v
             return
         }
 
+          for (const rule of rules) {
+            if (!rule.title || !rule.description) {
+                res.status(400).json({ 
+                    message: "Each rule must have a title and description" 
+                });
+                return;
+            }
+        }
+
+
          const existCommunity = await prisma.community.findUnique({
             where: { name }
         })
@@ -40,34 +50,53 @@ export const createCommunities = async(req: Request , res : Response): Promise<v
         }
 
         // Create the community first
-        const newCommunity = await prisma.community.create({
-            data: {
-                name,
-                description,
-                
-                ownerId,
-                rules: JSON.stringify(rules)
-            }
-        });
-
-        // If flair is provided, create it as a relation
-      
-
-        // Update user role to MODERATOR
-        await prisma.user.update({
-            where: {
-                 id: ownerId 
+        const [newCommunity] = await prisma.$transaction([
+            prisma.community.create({
+                data: {
+                    name,
+                    description,
+                    ownerId,
+                    rules: {
+                        create: rules.map((rule, index) => ({
+                            order: index + 1,
+                            title: rule.title,
+                            description: rule.description,
+                        })),
+                    }
                 },
-            data :{
-                role : 'MODERATOR'
-            }
-          });
+                include: {
+                    rules: true,
+                }
+              
+            }),
+            prisma.user.update({
+                where:{id: ownerId},
+                data:{
+                    role: 'MODERATOR',
+                }
+            }),
+            prisma.communityModerator.create({
+                data:{
+                    community : {
+                        connect: {name}
+                    },
+                    user : {
+                        connect: {id : ownerId}
+                    }
+                }
+            })
+        ]);
 
-        res.status(201).json({
-            status: 'success',
-            message: 'Community created successfully',
-            data: newCommunity,
-          });
+       
+    res.status(201).json({
+        status: "success",
+        message : " Community created successfully",
+        data: newCommunity
+    })
+
+
+
+        
     }catch(error) {
         console.error('Error creating community:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -104,12 +133,23 @@ export const joinCommunities = async(req: Request , res : Response): Promise<voi
             res.status(400).json({  message: "User is already a member of this community"})
         }
 
-        const newMembership = await prisma.userCommunity.create({
-            data: {
-                userId,
-                communityId,
-              },
-        })
+        const newMembership = await prisma.$transaction([
+            prisma.userCommunity.create({
+                data: {
+                    userId,
+                    communityId,
+                },
+            }),
+            prisma.community.update({
+                where: { id: communityId },
+                data: {
+                    membersCount : {
+                        increment: 1,
+                    },
+                },
+            }),
+        ])
+          
         res.status(201).json({
             status: "success",
             message: "User joined the community successfully",
@@ -125,8 +165,26 @@ export const joinCommunities = async(req: Request , res : Response): Promise<voi
 
 }
 
-
-
+export const getCommunityDetails = async(req: Request, res: Response): Promise<void> => {
+    try {
+        const {communityId} = req.params
+        if(!communityId) {
+            res.status(400).json({message : "communityId is important"})
+            return;
+        }
+        const community = await prisma.community.findUnique({
+            where : {
+                id: communityId
+            },
+            include: {
+                
+            }
+        })
+    }catch(Error) {
+        console.error("error in getting community details", Error);
+        res.status(500).json({message: "Internal server error"})
+    }
+}
 export const leaveCommunity = async(req: Request , res : Response): Promise<void> => {
      try{
       const {communityId}  = req.params;
@@ -171,15 +229,15 @@ export const leaveCommunity = async(req: Request , res : Response): Promise<void
 
 }
 
-export const addTags = async(req: Request, res: Response): Promise<void> => {
+export const addFlairs = async(req: Request, res: Response): Promise<void> => {
     try {
         const { communityId } = req.params;
-        const { tagName } = req.body;
+        const { flairName } = req.body;
 
-        if (!tagName) {
+        if (!flairName) {
             res.status(400).json({
                 success: false,
-                message: "Tag name is required"
+                message: "Flair name is required"
             });
             return;
         }
@@ -187,7 +245,7 @@ export const addTags = async(req: Request, res: Response): Promise<void> => {
         // Check if tag already exists in the community
         const existingTag = await prisma.flair.findFirst({
             where: {
-                name: tagName,
+                name: flairName,
                 communityId: communityId
             }
         });
@@ -195,27 +253,27 @@ export const addTags = async(req: Request, res: Response): Promise<void> => {
         if (existingTag) {
             res.status(400).json({
                 success: false,
-                message: "Tag already exists in this community"
+                message: "flair already exists in this community"
             });
             return;
         }
 
         // Create new tag
-        const newTag = await prisma.flair.create({
+        const newFlair = await prisma.flair.create({
             data: {
-                name: tagName,
+                name: flairName,
                 communityId: communityId
             }
         });
 
         res.status(201).json({
             success: true,
-            message: "Tag added successfully",
-            data: newTag
+            message: "flair added successfully",
+            data: newFlair
         });
 
     } catch (error) {
-        console.error("Error adding tag:", error);
+        console.error("Error adding flair:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error"
@@ -556,6 +614,6 @@ export const getRecentlyVisitedCommunities = async(req: Request, res :Response) 
 }
 
 
-export const getCommunityDetails = async(req: Request, res: Response) : Promise<void> => {
-    
-}
+
+
+// Type for the complete community response

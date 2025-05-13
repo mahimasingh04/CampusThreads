@@ -1,13 +1,7 @@
 import { atom, selector } from 'recoil';
-import { Community, Post, Tag,  User, SortOption, Rules, Moderator } from '@/types';
+import {   Tag,  SortOption } from '@/types';
 import {
-    fetchCommunityById,
-    
-    fetchCommunityMembers,
-    fetchCommunityRules,
-    fetchCommunityTags,
-     fetchCommunityModerators,
-     createCommunityTag
+   fetchCommunityDetailsById
   } from '@/api/Community';
 
 
@@ -29,74 +23,79 @@ export const sortOptionState = atom<SortOption>({
 
 
 
-
-export const communityDetailsState = selector<Community | null >({
-  key: 'communityDetailsState',
+export const communityState = selector<any>({
+  key: 'communityState',
   get: async ({ get }) => {
     const communityId = get(communityIdState);
-    if (!communityId) return null;
+    if(!communityId) return null;
+    try{
+      const response = await fetchCommunityDetailsById(communityId);
+       return {
+        
+        name : response.name,
+        description : response.description,
+        membersCount : response.membersCount,
+        createdAt  : response.createdAt
+      
 
-    try {
-      const community = await fetchCommunityById(communityId);
-      return community;
-    } catch (error) {
-      console.error('Error fetching community:', error);
+
+       }
+    }catch(error) {
+      console.error('Error fetching community data:', error);
       return null;
     }
   },
+  set: ({set}, newValue) => {
+    set(communityState, newValue);
+
+  },
 });
 
-export const communityRulesState = selector<Rules[]> ({
-  key:'communityRulesState',
-  get: async({get}) => {
-     const communityId = get(communityIdState);
-     if(!communityId) return[];
-     try{
-         const response = await fetchCommunityById(communityId);
-         return response.rules;
-     }catch(error) {
-      console.error('error fetching rules:', error);
-      return [];
-     }
-  }
-})
 
 
-export const communityMemberCountState = selector<number>({
-    key:'communityMemberCountState',
-    get: async({get}) => {
-        const communityId = get(communityIdState)
-        if(!communityId) {
-            return 0
-        }
-        try {
-            const count = await fetchCommunityMembers(communityId)
-            return count
-        }catch(error) {
-            console.error('error fetching community members: ', error)
-            return 0;
-        }
-           
+export const communityDataState = selector<any>({
+  key: 'communityDataState',
+  get: async ({ get }) => {
+    const communityId = get(communityIdState);
+    const sortOption = get(sortOptionState)
+    if (!communityId) return null;
+
+    try {
+      const response = await fetchCommunityDetailsById(communityId);
+
+        const sortedPosts = response.posts.sort((a,b) => {
+           if(sortOption === 'newest') {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+           }else if (sortOption === "oldest") {
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          } else { // hottest
+            return b.upvoteCount - a.upvoteCount;
+          }
+        })
+
+      return {
+        
+        posts : sortedPosts,
+        tags : response.tags,
+        rules : response.rules,
+        moderators : response.moderators,
+        
+      }
+    } catch (error) {
+      console.error('Error fetching community data:', error);
+      return null;
     }
-})
+  },
+  set: ({ set }, newValue) => {
+    // This allows you to set the community data directly if needed
+    set(communityDataState, newValue);
+  },
+});
+
+
   
 export const communityTagState = atom<Tag[]> ({
     key: 'communityTagState',
     default: []
 })
 
-export const communityModeratorsState = selector<Moderator[]>({
-  key: 'communityModeratorsState',
-  get: async ({get}) => {
-    const communityId = get(communityIdState);
-    if (!communityId) return []
-    
-    try {
-      const mods = await fetchCommunityModerators(communityId);
-      return mods;
-    } catch (error) {
-      console.error('Error fetching community moderators:', error);
-      return [];
-    }
-  }
-}); 

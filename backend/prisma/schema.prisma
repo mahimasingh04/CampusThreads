@@ -47,6 +47,7 @@ model User {
   joinRequests  Request[] @relation("UserRequests")
   likes       Like[]
   userVisits   communityVisit[]
+  moderator  CommunityModerator[]
 }
 
 model Post {
@@ -59,8 +60,8 @@ model Post {
      authorId   String 
      communityId String
      community  Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-     flairId    String
-     flair      Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
+     flairId   String
+    flair  Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
      savedBy    SavedPost[]
      likes      Like[]
      createdAt  DateTime  @default(now())
@@ -72,18 +73,29 @@ model Community {
   name   String   @unique
   description String
   ownerId  String 
-  flair   Flair[] 
-  rules   String
+  rules   Rules[]
+  membersCount Int @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   joinRequests Boolean @default(false)
   post      Post[]
+  flair     Flair[] 
   users     UserCommunity[]
   customFeeds CustomFeedCommunity[]
   communityVisits communityVisit[]
+  moderators   CommunityModerator[]
+
   
 }
 
+model Rules {
+  id     String  @id @default(uuid())
+  order Int
+  title  String
+  description  String
+  communityId  String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+}
 model Flair {
   id            String       @id @default(uuid())
   name          String
@@ -99,6 +111,8 @@ model UserCommunity {
   community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   @@id([userId, communityId])
 }
+
+
 
 model CustomFeed {
   id          String   @id @default(uuid())
@@ -180,4 +194,12 @@ model communityVisit {
   @@unique([userId, communityId]) // One visit record per user per community
   @@index([userId])              // Faster querying for user-specific visits
   @@index([visitedAt])           // Optimized for sorting by recency
+}
+
+model CommunityModerator {
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  @@id([userId, communityId])
 }

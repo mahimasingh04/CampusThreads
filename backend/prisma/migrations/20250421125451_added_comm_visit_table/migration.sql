@@ -40,3 +40,4 @@ ALTER TABLE "communityVisit" ADD CONSTRAINT "communityVisit_userId_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "communityVisit" ADD CONSTRAINT "communityVisit_communityId_fkey" FOREIGN KEY ("communityId") REFERENCES "Community"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

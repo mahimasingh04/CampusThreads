@@ -41,8 +41,8 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
          return;
        }
 
-       // Find the flair by name and community ID
-       const flair = await prisma.flair.findFirst({
+       // Find the tag by name and community ID
+       const flair= await prisma.flair.findFirst({
          where: {
            name: flairName,
            communityId: community.id,
@@ -50,7 +50,7 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
        });
    
        if (!flair) {
-         res.status(404).json({ message: "Flair not found in the community" });
+         res.status(404).json({ message: "Tag not found in the community" });
          return;
        }
 
@@ -276,7 +276,7 @@ export const updatePost = async(req : Request, res: Response) : Promise<void> =>
     // If flair is being updated, find the flair
     let flairId = post.flairId;
     if (flairName) {
-      const flair = await prisma.flair.findFirst({
+      const flair= await prisma.flair.findFirst({
         where: {
           name: flairName,
           communityId: post.communityId,
@@ -284,7 +284,7 @@ export const updatePost = async(req : Request, res: Response) : Promise<void> =>
       });
       
       if (!flair) {
-        res.status(404).json({ message: "Flair not found in the community" });
+        res.status(404).json({ message: "Tag not found in the community" });
         return;
       }
       
