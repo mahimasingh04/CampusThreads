@@ -6,6 +6,15 @@ export interface CommunityFormData {
   rules: string[];
 }
 
+export interface CommunityHeaderProps{
+  id: string;
+  name : string,
+  description: string,
+  membersCount: number | undefined,
+  createdAt: string,
+  banner: string
+}
+
 export interface User {
     id: string;
     username: string;
@@ -161,4 +170,13 @@ export interface Moderator {
   avatarUrl? : string
   communityId: string
 
+}
+
+export interface CommnityIconProps {
+    id : string;
+    name: string;
+    description: string;
+    rules : Rule[];
+    membersCount: number;
+    createdAt : string;
 }

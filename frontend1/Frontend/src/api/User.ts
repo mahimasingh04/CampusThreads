@@ -43,12 +43,3 @@ export const getCurrentUser = async (): Promise<User> => {
   
 };
 
-export const fetchCommunityDetailsById = async( communityId : string): Promise<CommunityDetailsResponse> => {
-  try {
-    const response = await api.get(`/community/${communityId}`)
-    return response.data;
-  }catch (error) {
-    throw new Error('Failed to fetch community details');
-  }
-  
-}

@@ -1,15 +1,17 @@
 import { atom, selector } from 'recoil';
-import {   Tag,  SortOption } from '@/types';
+import {   Community, Tag,  SortOption ,CommunityHeaderProps} from '@/types';
 import {
    fetchCommunityDetailsById
   } from '@/api/Community';
 
 
 
-export const communityIdState = atom<string | undefined>({
-  key: 'communityIdState',
-  default: undefined,
+
+export const communityIdentifierState = atom<string | null>({
+  key: 'communityIdentifierState',
+  default: null,
 });
+
 
 export const loadingState = atom<boolean>({
   key: 'loadingState',
@@ -21,79 +23,69 @@ export const sortOptionState = atom<SortOption>({
   default: 'hottest',
 });
 
-
-
-export const communityState = selector<any>({
-  key: 'communityState',
+export const rawCommunityResponseState = selector({
+  key: 'rawCommunityResponseState',
   get: async ({ get }) => {
-    const communityId = get(communityIdState);
-    if(!communityId) return null;
-    try{
-      const response = await fetchCommunityDetailsById(communityId);
-       return {
-        
-        name : response.name,
-        description : response.description,
-        membersCount : response.membersCount,
-        createdAt  : response.createdAt
-      
-
-
-       }
-    }catch(error) {
-      console.error('Error fetching community data:', error);
-      return null;
-    }
-  },
-  set: ({set}, newValue) => {
-    set(communityState, newValue);
-
-  },
-});
-
-
-
-export const communityDataState = selector<any>({
-  key: 'communityDataState',
-  get: async ({ get }) => {
-    const communityId = get(communityIdState);
-    const sortOption = get(sortOptionState)
-    if (!communityId) return null;
-
+    const identifier = get(communityIdentifierState);
+     console.log("Fetching data for:", identifier);
+    
+    if (!identifier) throw new Error('No identifier');
+    
     try {
-      const response = await fetchCommunityDetailsById(communityId);
-
-        const sortedPosts = response.posts.sort((a,b) => {
-           if(sortOption === 'newest') {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-           }else if (sortOption === "oldest") {
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          } else { // hottest
-            return b.upvoteCount - a.upvoteCount;
-          }
-        })
-
-      return {
-        
-        posts : sortedPosts,
-        tags : response.tags,
-        rules : response.rules,
-        moderators : response.moderators,
-        
-      }
+      const response = await fetchCommunityDetailsById(identifier);
+      console.log("API Response:", response);
+       if (!response) throw new Error('Community not found');
+      return response;
     } catch (error) {
       console.error('Error fetching community data:', error);
       return null;
     }
-  },
-  set: ({ set }, newValue) => {
-    // This allows you to set the community data directly if needed
-    set(communityDataState, newValue);
-  },
+  }
+});
+
+export const communityState = selector<any>({
+  key: 'communityState',
+  get: ({ get }) => {
+    const response = get(rawCommunityResponseState);
+    if (!response) return null;
+    
+    return {
+      id: response.id,
+      name: response.name,
+    
+    };
+  }
+});
+
+export const communityDataState = selector({
+  key: 'communityDataState',
+  get: ({ get }) => {
+    const response = get(rawCommunityResponseState);
+    const sortOption = get(sortOptionState);
+    if (!response) return null;
+
+    const sortedPosts = response.posts?.sort((a, b) => {
+      if (sortOption === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (sortOption === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else { // hottest
+        return (b.upvoteCount || 0) - (a.upvoteCount || 0);
+      }
+    }) || [];
+
+    return {
+      posts: sortedPosts,
+      tags: response.tags || [],
+      rules: response.rules || [],
+      moderators: response.moderators || [],
+    };
+  }
 });
 
 
-  
+
+
 export const communityTagState = atom<Tag[]> ({
     key: 'communityTagState',
     default: []

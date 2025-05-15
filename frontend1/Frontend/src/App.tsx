@@ -14,6 +14,7 @@ import { RecoilRoot } from "recoil";
 import Feed from "./pages/Feed";
 import MainLayout from "./components/layout/Mainlayout";
 import ErrorBoundary from "./components/ErrorBoundary";
+import Community from "./pages/Community";
 
 
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<Login/>} />
             <Route path="/signup" element={<SignUp />} />
+           
   
             <Route
               element={
@@ -38,6 +40,7 @@ const App = () => (
                   <ProtectedRoute>
                     <MainLayout />
                   </ProtectedRoute>
+                
                 </RecoilRoot>
               }
             >
@@ -51,6 +54,16 @@ const App = () => (
                 }
               />
               <Route path="/create-community" element={<CreateCommunity />} />
+
+              <Route
+                path="/community/:identifier"
+                element={
+                  <ErrorBoundary>
+                    <Community />
+                  </ErrorBoundary>
+                }
+              />
+      
               </Route>
           </Routes>
         </AuthProvider>

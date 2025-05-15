@@ -30,10 +30,14 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
 
 // Community API Service
 
- export const  fetchCommunityDetailsById = async (communityId: string): Promise<Community> => {
+ export const  fetchCommunityDetailsById = async (identifier: string): Promise<Community> => {
   
     try {
-      const response = await api.get(`/community/${communityId}`);
+
+      const response = await api.get(`/community/getComm/${encodeURIComponent(identifier)}`);
+      if(!response.data) {
+        throw new Error('Invalid response format from server');
+      }
       return response.data;
 
       } catch (error) {

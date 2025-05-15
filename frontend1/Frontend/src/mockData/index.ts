@@ -1,5 +1,5 @@
 
-import { Community, CustomFeed, Post, User } from '@/types';
+import { Community, CustomFeed, Post, User , CommnityIconProps} from '@/types';
 
 // Mock user
 export const mockUser: User = {

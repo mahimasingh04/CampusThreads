@@ -1,7 +1,7 @@
 
 import { atom , selector} from 'recoil';
 
-import { Community, CustomFeed, Post, User , Rule } from '@/types';
+import { Community, CustomFeed, Post, User , Rule, CommnityIconProps } from '@/types';
 
 
 import {getCurrentUser} from '@/api/User'

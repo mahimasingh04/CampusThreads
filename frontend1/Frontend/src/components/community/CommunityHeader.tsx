@@ -6,14 +6,28 @@ import { useState } from "react";
 
 type CommunityHeaderProps = {
   community: Community;
+  
 };
 
 const CommunityHeader = ({ community }: CommunityHeaderProps) => {
   const [joined, setJoined] = useState(false);
 
+   if (!community) {
+    return (
+      <div className="relative h-48 w-full bg-slate-800 animate-pulse">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="-mt-12 sm:-mt-16 sm:flex sm:items-end sm:space-x-5">
+            <div className="h-24 w-24 rounded-full bg-slate-700 border-4 border-slate-900"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const bannerImage = community.banner || '';
-  const displayName = community.name || 'Community';
+
+  const bannerImage = community.banner || ''; 
+  const displayName = community.name || '';
+
   
   const toggleJoin = () => {
     setJoined(!joined);
@@ -28,6 +42,7 @@ const CommunityHeader = ({ community }: CommunityHeaderProps) => {
             src={bannerImage} 
             alt={`${displayName} banner`}
             className="w-full h-full object-cover opacity-60"
+             loading="lazy"
           />
         )}
       </div>

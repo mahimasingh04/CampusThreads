@@ -5,53 +5,55 @@ import { PrismaClient, Role } from "@prisma/client"; // Import PrismaClient
 const prisma = new PrismaClient(); 
 
 
-export const createCommunities = async(req: Request , res : Response): Promise<void> => {
-     
-    //people who are authenticated can create community
-    //people can create commuity with diff name only
+export const createCommunities = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { name, description, rules } = req.body;
+        const ownerId = req.userId;
 
-    try{
-
-        const {name, description, rules }  = req.body
-         const ownerId = req.userId
-
-         if (!ownerId) {
-            res.status(401).json({ message: "Unauthorized: User ID is missing" });
+        // Validation
+        if (!ownerId) {
+            res.status(401).json({ status: "error", message: "Unauthorized: User ID is missing" });
             return;
-          }
-          if (!name || !description || !rules) {
-            res.status(400).json({ message: "Name, description, and rules are required" });
-            return;
-          }
-
-           // Validate rules is an array of objects
-        if (!Array.isArray(rules )) {
-            res.status(400).json({ message: "Rules must be an array" });
-            return
         }
 
-          for (const rule of rules) {
+        if (!name || !description || !rules) {
+            res.status(400).json({ status: "error", message: "Name, description, and rules are required" });
+            return;
+        }
+
+        if (!Array.isArray(rules)) {
+            res.status(400).json({ status: "error", message: "Rules must be an array" });
+            return;
+        }
+
+        // Validate each rule
+        for (const rule of rules) {
             if (!rule.title || !rule.description) {
                 res.status(400).json({ 
+                    status: "error",
                     message: "Each rule must have a title and description" 
                 });
                 return;
             }
         }
 
-
-         const existCommunity = await prisma.community.findUnique({
+        // Check for existing community
+        const existCommunity = await prisma.community.findUnique({
             where: { name }
-        })
+        });
 
-        if(existCommunity) {
-            res.status(400).json({message : "Community with this name already exists"});
-            return
+        if (existCommunity) {
+            res.status(400).json({ 
+                status: "error",
+                message: "Community with this name already exists" 
+            });
+            return;
         }
 
-        // Create the community first
-        const [newCommunity] = await prisma.$transaction([
-            prisma.community.create({
+        // Create transaction
+        const result = await prisma.$transaction(async (prisma) => {
+            // Create the community
+            const newCommunity = await prisma.community.create({
                 data: {
                     name,
                     description,
@@ -67,44 +69,39 @@ export const createCommunities = async(req: Request , res : Response): Promise<v
                 include: {
                     rules: true,
                 }
-              
-            }),
-            prisma.user.update({
-                where:{id: ownerId},
-                data:{
-                    role: 'MODERATOR',
+            });
+
+            // Update user role
+            await prisma.user.update({
+                where: { id: ownerId },
+                data: { role: 'MODERATOR' }
+            });
+
+            // Create moderator relationship
+            await prisma.communityModerator.create({
+                data: {
+                    communityId: newCommunity.id,
+                    userId: ownerId
                 }
-            }),
-            prisma.communityModerator.create({
-                data:{
-                    community : {
-                        connect: {name}
-                    },
-                    user : {
-                        connect: {id : ownerId}
-                    }
-                }
-            })
-        ]);
+            });
 
-       
-    res.status(201).json({
-        status: "success",
-        message : " Community created successfully",
-        data: newCommunity
-    })
+            return newCommunity;
+        });
 
+        res.status(201).json({
+            status: "success",
+            message: "Community created successfully",
+            data: result
+        });
 
-
-        
-    }catch(error) {
+    } catch (error) {
         console.error('Error creating community:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ 
+            status: "error",
+            message: 'Internal server error' 
+        });
     }
-
-
-}
-
+};
 export const joinCommunities = async(req: Request , res : Response): Promise<void> => {
       
    // does this community exists/
@@ -165,26 +162,7 @@ export const joinCommunities = async(req: Request , res : Response): Promise<voi
 
 }
 
-export const getCommunityDetails = async(req: Request, res: Response): Promise<void> => {
-    try {
-        const {communityId} = req.params
-        if(!communityId) {
-            res.status(400).json({message : "communityId is important"})
-            return;
-        }
-        const community = await prisma.community.findUnique({
-            where : {
-                id: communityId
-            },
-            include: {
-                
-            }
-        })
-    }catch(Error) {
-        console.error("error in getting community details", Error);
-        res.status(500).json({message: "Internal server error"})
-    }
-}
+
 export const leaveCommunity = async(req: Request , res : Response): Promise<void> => {
      try{
       const {communityId}  = req.params;
@@ -614,6 +592,107 @@ export const getRecentlyVisitedCommunities = async(req: Request, res :Response) 
 }
 
 
+export const getCommunityDetailsById =  async(req: Request, res: Response): Promise<void> => {
+    try{
+         const { identifier } = req.params;
+         if(! identifier) {
+          res.status(400).json({message : "identifier is important"})
+          return;
+         }
+            const community = await prisma.community.findFirst({
+                where : {
+                   OR: [
+                    {id: identifier},
+                    {name: identifier}
+                   ]
+                },
+                include: {
+                    rules: {
+                        select: {
+                            title: true,
+                            description: true,
+                            order: true
+                        }
 
+                    },
+                    flair: {
+                         select: {
+                            name: true,
+                         }
+                    },
+                    post: {
+                        select: {
+                            title: true,
+                            content: true,
+                            contentType: true,
+                            flair: {
+                                select: {
+                                    name: true,
+                                }
+                            },
+                            author:{
+                                select: {
+                                    id: true,
+                                    name: true,
+                                }
+
+                            },
+                            createdAt: true,
+                            updatedAt: true,
+                            upvotes: true,
+                            downvotes: true,
+                            comments: {
+                                select: {
+                                    id: true,
+                                    content: true,
+
+                                }
+                            },
+                            commentCount: true,
+                        }
+                    },
+                    moderators: {
+                        select: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                
+
+            })
+            if(!community) {
+                res.status(404).json({message : "community not found"})
+                return;
+            }
+            const response = {
+                  id: community.id,
+                name: community.name,
+                description: community.description,
+                rules: community.rules,
+                flair: community.flair,
+                post: community.post,
+                moderators: community.moderators.map(m => m.user),
+                membersCount: community.membersCount,
+                createdAt: community.createdAt,
+                updatedAt: community.updatedAt,
+              
+            }
+            res.status(200).json({
+                status:" success",
+                message: "community details retreived successfully",
+                data: response
+            })
+    }catch(error){
+        console.error("Error retreiving community details:", error);
+        res.status(500).json({message : "Internal server error"}) 
+    }
+}
 
 // Type for the complete community response

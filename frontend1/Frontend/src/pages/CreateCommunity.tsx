@@ -26,8 +26,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 import { joinedCommunitiesState, communityRulesState } from '@/store/Atom'
-import { Community, RulesForm} from '@/types';
+import { Community, RulesForm, } from '@/types';
 
 const formSchema = z.object({
   name: z.string()
@@ -117,71 +118,56 @@ const CreateCommunity: React.FC = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
-    // In a real app, this would be an API call
-    try {
-        const rulesWithOrder = values.rules.map((rule, index) => ({
+  try {
+    // Prepare rules data
+    const rulesWithOrder = values.rules.map((rule, index) => ({
       ...rule,
       order: index + 1,
       title: rule.title.trim(),
       description: rule.description ? rule.description.trim() : '',
     }));
 
-      const response = await fetch('http://localhost:3000/api/community/createComm', {
+    // API call
+    const response = await fetch('http://localhost:3000/api/community/createComm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
       body: JSON.stringify({
-        name: values.name,
-        description: values.description,
+        name: values.name.trim(),
+        description: values.description.trim(),
         rules: rulesWithOrder,
       }),
     });
 
-    if(!response.ok) {
-        const data = await response.json();
-            throw new Error(data.message || 'Failed to create community');
+    const responseData = await response.json();
 
+    if (!response.ok) {
+      throw new Error(responseData.message || 'Failed to create community');
     }
 
-      const newCommunity: Community = {
-        id: `community-${Date.now()}`,
-        name: values.name,
-        description: values.description,
-        membersCount: 1,
-        createdAt: new Date().toISOString(),
-        avatarUrl: `https://picsum.photos/seed/${values.name}/100`,
-        rules: values.rules.map((rule, index) => ({
-          id: `rule-${Date.now()}-${index}`,
-          communityId: `community-${Date.now()}`,
-          order: index + 1,
-          title: rule.title,
-          description: rule.description
-        })),
-        banner: '',
-        posts: [],
-        tags: [],
-        moderators: []
-      };
-    
-    setJoinedCommunities([...joinedCommunities, newCommunity]);
-    
-    // Store community rules in recoil state
+    // Use the actual response data instead of mock data
+    const newCommunity = responseData.data;
+
+    // Update state with the real community data from the server
+    setJoinedCommunities(prev => [...prev, newCommunity]);
+
+    // Store community rules
     setCommunityRules(prev => ({
       ...prev,
       [newCommunity.name]: newCommunity.rules || []
     }));
+
+    // Navigate to the new community
+    navigate(`/community/${newCommunity.name}`);
+
+  } catch (error) {
+    console.error('Error creating community:', error);
+    // Better error handling - show specific error messages
     
-    navigate(`/r/${values.name}`);
-  
-    }catch(error) {
-       console.error('error crating community:', error);
-       alert('failed to create community');
-
-    }
   }
-
+}
   return (
     <div className="max-w-2xl mx-auto">
       <Card className="bg-slate-800 border-slate-700">

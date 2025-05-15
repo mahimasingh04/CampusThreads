@@ -27,6 +27,7 @@ enum ContentType {
   POLLS
 }
 
+
    
 
 model User {
@@ -45,7 +46,7 @@ model User {
   savedPosts  SavedPost[]
   hackathonPosts HackathonPost[]    @relation("UserPosts")
   joinRequests  Request[] @relation("UserRequests")
-  likes       Like[]
+  comments  Comment[]
   userVisits   communityVisit[]
   moderator  CommunityModerator[]
 }
@@ -61,16 +62,19 @@ model Post {
      communityId String
      community  Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
      flairId   String
-    flair  Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
+     flair  Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
      savedBy    SavedPost[]
-     likes      Like[]
+    upvotes  Int    @ default(0)
+    downvotes  Int   @ default(0)
+    comments  Comment[]
+    commentCount  Int  @default(0)
      createdAt  DateTime  @default(now())
      updatedAt  DateTime?  @updatedAt
 }
 
 model Community {
   id   String     @id    @default(uuid())
-  name   String   @unique
+  name   String   @unique 
   description String
   ownerId  String 
   rules   Rules[]
@@ -172,16 +176,7 @@ model Request {
   @@unique([hackathonpostId, userId])
 }
 
-model Like {
-  id        String   @id @default(uuid())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  likeSource String   @default("FEED") // "FEED" or "POST_PAGE"
-  createdAt DateTime @default(now())
-  @@unique([postId, userId]) // Prevent duplicate likes
-}
+
 
 model communityVisit {
   id          String   @id @default(uuid())
@@ -202,4 +197,14 @@ model CommunityModerator {
   communityId String
   community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   @@id([userId, communityId])
+}
+
+model Comment{
+  id String  @id @default(uuid())
+  postId  String
+  post  Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content  String
+
 }
