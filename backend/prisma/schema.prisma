@@ -61,8 +61,8 @@ model Post {
      authorId   String 
      communityId String
      community  Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-     flairId   String
-     flair  Flair     @relation(fields: [flairId], references: [id], onDelete: Cascade)
+     tagId   String
+     tag  Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
      savedBy    SavedPost[]
     upvotes  Int    @ default(0)
     downvotes  Int   @ default(0)
@@ -83,7 +83,7 @@ model Community {
   updatedAt     DateTime  @updatedAt
   joinRequests Boolean @default(false)
   post      Post[]
-  flair     Flair[] 
+  tags    Tag[] 
   users     UserCommunity[]
   customFeeds CustomFeedCommunity[]
   communityVisits communityVisit[]
@@ -100,7 +100,7 @@ model Rules {
   communityId  String
   community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
 }
-model Flair {
+model Tag {
   id            String       @id @default(uuid())
   name          String
   communityId   String

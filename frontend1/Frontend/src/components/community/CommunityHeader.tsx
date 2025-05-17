@@ -1,11 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import { Community } from "@/types";
+import { BasicCommunity } from "@/types";
 
 import { useState } from "react";
 
 type CommunityHeaderProps = {
-  community: Community;
+  community:  BasicCommunity;
   
 };
 

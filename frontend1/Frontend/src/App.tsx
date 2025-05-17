@@ -58,9 +58,11 @@ const App = () => (
               <Route
                 path="/community/:identifier"
                 element={
+                  <RecoilRoot>
                   <ErrorBoundary>
                     <Community />
                   </ErrorBoundary>
+                  </RecoilRoot>
                 }
               />
       

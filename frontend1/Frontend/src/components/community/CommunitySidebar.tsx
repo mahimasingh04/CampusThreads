@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Community, Rule, User, Tag } from "@/types";
+import { Community, Rule, User, Tag, BasicCommunity , Moderator} from "@/types";
 import { Calendar, Globe, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,7 @@ import { toast } from "sonner"; // Changed from useToast to sonner
 type CommunitySidebarProps = {
   community: Community;
   rules: Rule[];
-  moderators: User[];
+  moderators: Moderator[];
   tags: string[];
   onTagCreated?: (tag: Tag) => void;
 };
@@ -108,15 +108,19 @@ const CommunitySidebar = ({ community, rules, moderators, tags, onTagCreated }: 
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag, index) => (
+            {tags && tags.length > 0 ? (
+            tags.map((tag, id) => (
               <Badge 
-                key={index} 
+                key={id} 
                 className="bg-slate-700 hover:bg-slate-600 cursor-pointer"
                 onClick={() => toast.info(`Showing posts with tag: ${tag}`)} // Using sonner
               >
                 {tag}
               </Badge>
-            ))}
+            ))
+            ) : (
+              <p className="text-sm text-slate-400">No tags available</p>
+            )}
           </div>
           
           {isModerator && (
@@ -139,7 +143,7 @@ const CommunitySidebar = ({ community, rules, moderators, tags, onTagCreated }: 
         </CardHeader>
         <CardContent className="space-y-4">
           {rules.map((rule) => (
-            <div key={rule.id} className="space-y-1">
+            <div key={rule.id || rule.order} className="space-y-1">
               <div 
                 className="flex items-center justify-between cursor-pointer"
                 onClick={() => {
@@ -193,15 +197,15 @@ const CommunitySidebar = ({ community, rules, moderators, tags, onTagCreated }: 
               <div 
                 key={moderator.id} 
                 className="flex items-center space-x-2"
-                onClick={() => toast.info(`Viewing ${moderator.username}'s profile`)} // Using sonner
+                onClick={() => toast.info(`Viewing ${moderator.name}'s profile`)} // Using sonner
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={moderator.avatarUrl} />
-                  <AvatarFallback>{moderator.username[0].toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>{moderator.name[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex items-center space-x-1">
-                  <span className="text-sm text-slate-200">u/{moderator.username}</span>
-                  <Badge className="bg-blue-600 text-xs px-1">MOD</Badge>
+                  <span className="text-sm text-slate-200">u/{moderator.name}</span>
+                  <Badge className="bg-blue-600 text-xs px-1">MODs</Badge>
                 </div>
               </div>
             ))}

@@ -38,7 +38,8 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
       if(!response.data) {
         throw new Error('Invalid response format from server');
       }
-      return response.data;
+      return response.data.data;
+
 
       } catch (error) {
       return handleApiError(error, 'Community not found');

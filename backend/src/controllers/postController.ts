@@ -20,7 +20,7 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
        }
        
        // Get data from request body
-       const { title, content, flairName } = req.body;
+       const { title, content, tagName } = req.body;
        
        // Get author ID from auth middleware
        const authorId = req.userId;
@@ -42,14 +42,14 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
        }
 
        // Find the tag by name and community ID
-       const flair= await prisma.flair.findFirst({
+       const tag= await prisma.tag.findFirst({
          where: {
-           name: flairName,
+           name: tagName,
            communityId: community.id,
          },
        });
    
-       if (!flair) {
+       if (!tag) {
          res.status(404).json({ message: "Tag not found in the community" });
          return;
        }
@@ -79,7 +79,7 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
            contentType: postType,
            authorId,
            communityId: community.id,
-           flairId: flair.id,
+           tagId: tag.id,
          }
        });
        
@@ -126,7 +126,7 @@ export const viewPost = async (req: Request, res : Response) : Promise<void> => 
             description: true
           }
         },
-        flair: {
+        tag: {
           select: {
             id: true,
             name: true
@@ -187,7 +187,7 @@ export const getPostByCommuityName = async(req : Request, res : Response) : Prom
             description: true
           }
         },
-        flair: {
+        tag: {
           select: {
             id: true,
             name: true
@@ -252,7 +252,7 @@ export const updatePost = async(req : Request, res: Response) : Promise<void> =>
   try {
     const postId = req.params.postId;
     const userId = req.userId;
-    const { title, content, flairName } = req.body;
+    const { title, content, tagName } = req.body;
     
     // Find the post by ID
     const post = await prisma.post.findUnique({
@@ -274,21 +274,21 @@ export const updatePost = async(req : Request, res: Response) : Promise<void> =>
     }
     
     // If flair is being updated, find the flair
-    let flairId = post.flairId;
-    if (flairName) {
-      const flair= await prisma.flair.findFirst({
+    let tagId = post.tagId;
+    if (tagName) {
+      const tag = await prisma.tag.findFirst({
         where: {
-          name: flairName,
+          name: tagName,
           communityId: post.communityId,
         },
       });
-      
-      if (!flair) {
+
+      if (!tag) {
         res.status(404).json({ message: "Tag not found in the community" });
         return;
       }
-      
-      flairId = flair.id;
+
+      tagId = tag.id;
     }
     
     // Update the post
@@ -299,7 +299,7 @@ export const updatePost = async(req : Request, res: Response) : Promise<void> =>
       data: {
         title: title || post.title,
         content: content || post.content,
-        flairId: flairId
+        tagId: tagId
       }
     });
     
@@ -463,7 +463,7 @@ export const getSavedPosts = async (req : Request, res: Response) : Promise<void
                 description: true
               }
             },
-            flair: {
+            tag: {
               select: {
                 id: true,
                 name: true

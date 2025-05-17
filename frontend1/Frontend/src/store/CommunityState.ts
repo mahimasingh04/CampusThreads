@@ -1,9 +1,12 @@
 import { atom, selector } from 'recoil';
-import {   Community, Tag,  SortOption ,CommunityHeaderProps} from '@/types';
+import {   Community, Tag,  SortOption } from '@/types';
 import {
    fetchCommunityDetailsById
   } from '@/api/Community';
 
+
+// fetch community data by ID
+// fetch communityPosts by communityId 
 
 
 
@@ -43,6 +46,7 @@ export const rawCommunityResponseState = selector({
   }
 });
 
+
 export const communityState = selector<any>({
   key: 'communityState',
   get: ({ get }) => {
@@ -52,6 +56,7 @@ export const communityState = selector<any>({
     return {
       id: response.id,
       name: response.name,
+      description  : response.description
     
     };
   }
@@ -59,7 +64,7 @@ export const communityState = selector<any>({
 
 export const communityDataState = selector({
   key: 'communityDataState',
-  get: ({ get }) => {
+  get: async ({ get }) => {
     const response = get(rawCommunityResponseState);
     const sortOption = get(sortOptionState);
     if (!response) return null;
@@ -76,8 +81,13 @@ export const communityDataState = selector({
 
     return {
       posts: sortedPosts,
-      tags: response.tags || [],
-      rules: response.rules || [],
+      rules: response.rules?.map(rule => ({
+        id: rule.id || crypto.randomUUID(),
+        order: rule.order || 0,
+        title: rule.title || 'Untitled rule',
+        description: rule.description || ''
+      })) || [],
+     tags : response.tags || [],
       moderators: response.moderators || [],
     };
   }

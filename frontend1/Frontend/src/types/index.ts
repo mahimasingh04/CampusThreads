@@ -6,13 +6,11 @@ export interface CommunityFormData {
   rules: string[];
 }
 
-export interface CommunityHeaderProps{
+export interface BasicCommunity {
   id: string;
-  name : string,
-  description: string,
-  membersCount: number | undefined,
-  createdAt: string,
-  banner: string
+  name: string;
+  description: string;
+  banner : string;
 }
 
 export interface User {
@@ -33,8 +31,8 @@ export interface User {
     avatarUrl: string;
     bannerUrl?: string;
     posts : Post[];
-    rules: Rule[];
-    tags : Tag[];
+    rules? : Rule[];
+    tags ? : Tag[];
     moderators: User[];
     
   }
@@ -166,7 +164,7 @@ export type CollaborationRole = {
 export interface Moderator {
   id: string,
   avatar : string,
-  username: string,
+  name: string,
   avatarUrl? : string
   communityId: string
 

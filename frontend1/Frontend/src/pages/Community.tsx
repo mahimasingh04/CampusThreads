@@ -48,8 +48,8 @@ const Community = () => {
 const CommunityContent = () => {
   
   
-  const communityLoadable = useRecoilValueLoadable(communityState);
-  const communityDataLoadable = useRecoilValueLoadable(communityDataState);
+  const communityLoadable = useRecoilValueLoadable(communityState) || {};
+  const communityDataLoadable = useRecoilValueLoadable(communityDataState) ||{};
 
 
    
@@ -68,6 +68,7 @@ const CommunityContent = () => {
   
 
   console.log("Community:", community);
+  console.log("CommunityData:", communityData);
   console.log("CommunityContent rendered");
    
   const handleTagCreated = async (newTag: Tag) => {
@@ -100,7 +101,7 @@ const CommunityContent = () => {
 
   return (
     <>
-      <CommunityHeader community={community} />
+      <CommunityHeader community= {community }/>
                        
       <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -109,7 +110,8 @@ const CommunityContent = () => {
               community={community}
               rules={communityData?.rules || []}
               moderators={communityData?.moderators || []}
-              tags={communityData?.tags?.map((tag: Tag) => tag.name) || []}
+            tags={Array.isArray(communityData?.tags) ? communityData.tags.map((tag: Tag) => tag.name) : []}
+
               onTagCreated={handleTagCreated}
             />
           </div>

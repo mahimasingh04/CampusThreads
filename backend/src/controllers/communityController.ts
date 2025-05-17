@@ -207,12 +207,12 @@ export const leaveCommunity = async(req: Request , res : Response): Promise<void
 
 }
 
-export const addFlairs = async(req: Request, res: Response): Promise<void> => {
+export const addTags = async(req: Request, res: Response): Promise<void> => {
     try {
         const { communityId } = req.params;
-        const { flairName } = req.body;
+        const { tagName } = req.body;
 
-        if (!flairName) {
+        if (!tagName) {
             res.status(400).json({
                 success: false,
                 message: "Flair name is required"
@@ -221,9 +221,9 @@ export const addFlairs = async(req: Request, res: Response): Promise<void> => {
         }
 
         // Check if tag already exists in the community
-        const existingTag = await prisma.flair.findFirst({
+        const existingTag = await prisma.tag.findFirst({
             where: {
-                name: flairName,
+                name: tagName,
                 communityId: communityId
             }
         });
@@ -237,9 +237,9 @@ export const addFlairs = async(req: Request, res: Response): Promise<void> => {
         }
 
         // Create new tag
-        const newFlair = await prisma.flair.create({
+        const newFlair = await prisma.tag.create({
             data: {
-                name: flairName,
+                name: tagName,
                 communityId: communityId
             }
         });
@@ -415,7 +415,7 @@ export const getCustomFeedPosts = async(req: Request, res: Response): Promise<vo
                         name: true
                     }
                 },
-                flair: {
+                tag: {
                     select: {
                         id: true,
                         name: true
@@ -609,13 +609,14 @@ export const getCommunityDetailsById =  async(req: Request, res: Response): Prom
                 include: {
                     rules: {
                         select: {
+                            id: true,
                             title: true,
                             description: true,
                             order: true
                         }
 
                     },
-                    flair: {
+                    tags: {
                          select: {
                             name: true,
                          }
@@ -625,9 +626,10 @@ export const getCommunityDetailsById =  async(req: Request, res: Response): Prom
                             title: true,
                             content: true,
                             contentType: true,
-                            flair: {
+                            tag: {
                                 select: {
                                     name: true,
+                                    
                                 }
                             },
                             author:{
@@ -676,7 +678,7 @@ export const getCommunityDetailsById =  async(req: Request, res: Response): Prom
                 name: community.name,
                 description: community.description,
                 rules: community.rules,
-                flair: community.flair,
+                tags: community.tags,
                 post: community.post,
                 moderators: community.moderators.map(m => m.user),
                 membersCount: community.membersCount,

@@ -70,10 +70,13 @@ const CreateTagDialog = ({ communityId, onTagCreated }: CreateTagDialogProps) =>
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 bg-slate-800 border-slate-700 hover:bg-slate-700">
+        <div>
+           <Button variant="outline" className="gap-2 bg-slate-800 border-slate-700 hover:bg-slate-700">
           <Plus className="h-4 w-4" />
           Add Tag
         </Button>
+        </div>
+       
       </DialogTrigger>
       <DialogContent className="bg-slate-800 border-slate-700">
         <DialogHeader>
