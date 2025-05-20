@@ -88,7 +88,6 @@ const CommunityContent = () => {
       console.error("Tag creation error:", error);
     }
   };
-
   
 
   if (!community) {
@@ -110,7 +109,7 @@ const CommunityContent = () => {
               community={community}
               rules={communityData?.rules || []}
               moderators={communityData?.moderators || []}
-            tags={Array.isArray(communityData?.tags) ? communityData.tags.map((tag: Tag) => tag.name) : []}
+             tags={Array.isArray(communityData?.tags) ? communityData.tags.map((tag: Tag) => tag.name) : []}
 
               onTagCreated={handleTagCreated}
             />

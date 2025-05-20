@@ -33,7 +33,7 @@ export interface User {
     posts : Post[];
     rules? : Rule[];
     tags ? : Tag[];
-    moderators: User[];
+    moderators: Moderator[];
     
   }
   
@@ -55,7 +55,7 @@ export interface User {
     imageUrl?: string;
     tags: Tag[];
     isPrivate?: boolean;
-  accessCode?: string | null;
+   accessCode?: string | null;
     isCollaboration?: boolean;
     collaborationDetails?: CollaborationDetails
   }

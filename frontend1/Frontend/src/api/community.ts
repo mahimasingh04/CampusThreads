@@ -76,7 +76,8 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
     }
   }
 
-  export const createCommunityTag = async(communityId : string,  tagData: {
+  
+ export const createCommunityTag = async(communityId : string,  tagData: {
     name: string;
     description: string;
     isPublic: boolean;
@@ -99,3 +100,5 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
         return handleApiError(error, 'Failed to create tag');
       }     
   }
+
+  

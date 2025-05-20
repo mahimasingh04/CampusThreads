@@ -49,6 +49,7 @@ model User {
   comments  Comment[]
   userVisits   communityVisit[]
   moderator  CommunityModerator[]
+   createdTags  Tag[]
 }
 
 model Post {
@@ -101,11 +102,22 @@ model Rules {
   community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
 }
 model Tag {
-  id            String       @id @default(uuid())
+  id            String     @id @default(uuid())
   name          String
+  description   String
+  isPublic      Boolean    @default(true)
+  accessCode    String?    @unique
   communityId   String
-  community     Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  community     Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdBy     String
+  creator       User       @relation(fields: [createdBy], references: [id])
   posts         Post[]
+
+   @@unique([name, communityId])
+  
+  // Index for better performance on common queries
+  @@index([communityId])
+  @@index([isPublic])
 }
 
 model UserCommunity {

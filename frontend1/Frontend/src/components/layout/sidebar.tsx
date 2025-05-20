@@ -190,7 +190,7 @@ const Sidebar : React.FC = () => {
                   <Link to="/create-community">
                     <Button 
                       variant="ghost" 
-                      className="w-full justify-start text-primary hover:bg-slate-700"
+                      className="w-full justify-start text-primary hover:bg-slate-700 pointer-events-auto"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       <span>Create Community</span>

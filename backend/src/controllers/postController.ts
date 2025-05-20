@@ -9,84 +9,9 @@ const prisma = new PrismaClient();
 
 export const createPosts = async (req: Request, res: Response) : Promise<void> => {
     try {
-       // Get post type from URL parameter
-       const communityName = req.params.communityName;
-       const postType = req.params.type as ContentType;
-       
-       // Validate post type
-       if (!Object.values(ContentType).includes(postType)) {
-         res.status(400).json({ message: "Invalid post type. Must be one of: TEXT, IMAGES, VIDEOS, POLLS" });
-         return;
-       }
-       
-       // Get data from request body
-       const { title, content, tagName } = req.body;
-       
-       // Get author ID from auth middleware
-       const authorId = req.userId;
+      
+    }catch(Error) {
 
-       // Validate required fields
-       if (!title || !content || !communityName || !authorId) {
-          res.status(400).json({ message: "Title, content, community name, and author ID are required" });
-          return;
-       }
-
-       // Find the community by name
-       const community = await prisma.community.findUnique({
-         where: { name: communityName },
-       });
-   
-       if (!community) {
-         res.status(404).json({ message: "Community not found" });
-         return;
-       }
-
-       // Find the tag by name and community ID
-       const tag= await prisma.tag.findFirst({
-         where: {
-           name: tagName,
-           communityId: community.id,
-         },
-       });
-   
-       if (!tag) {
-         res.status(404).json({ message: "Tag not found in the community" });
-         return;
-       }
-
-       let mediaUrl = null;
-
-       // Handle file upload for IMAGES and VIDEOS
-       if (postType === "IMAGES" || postType === "VIDEOS") {
-         if (!req.file) {
-           res.status(400).json({ message: "File is required for image/video posts" });
-           return;
-         }
-   
-         // Upload file to Cloudinary
-         const result = await cloudinary.uploader.upload(req.file.path, {
-           resource_type: postType === "IMAGES" ? "image" : "video",
-         });
-   
-         mediaUrl = result.secure_url; // Save the Cloudinary URL
-       }
-
-       // Create the post
-       const newPost = await prisma.post.create({
-         data: {
-           title,
-           content: mediaUrl || content, // Use media URL for images/videos, otherwise use content
-           contentType: postType,
-           authorId,
-           communityId: community.id,
-           tagId: tag.id,
-         }
-       });
-       
-       res.status(201).json({ message: "Post created successfully", newPost });
-    } catch(error) {
-       console.error(error);
-       res.status(500).json({ message: "Failed to create post" });
     }
 }
 

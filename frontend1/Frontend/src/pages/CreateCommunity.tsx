@@ -351,7 +351,7 @@ const CreateCommunity: React.FC = () => {
                   type="button" 
                   variant="outline" 
                   onClick={() => navigate(-1)}
-                  className="border-slate-700 text-white hover:bg-slate-700 hover:text-white"
+                  className="border-slate-700 text-Black hover:bg-slate-700 hover:text-white"
                 >
                   Cancel
                 </Button>

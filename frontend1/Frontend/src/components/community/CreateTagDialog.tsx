@@ -36,11 +36,11 @@ const tagFormSchema = z.object({
 type TagFormValues = z.infer<typeof tagFormSchema>;
 
 type CreateTagDialogProps = {
-  communityId: string;
+  identifier : string;
   onTagCreated: (tag: Tag) => void;
 };
 
-const CreateTagDialog = ({ communityId, onTagCreated }: CreateTagDialogProps) => {
+const CreateTagDialog = ({ identifier, onTagCreated }: CreateTagDialogProps) => {
   const form = useForm<TagFormValues>({
     resolver: zodResolver(tagFormSchema),
     defaultValues: {
@@ -49,21 +49,40 @@ const CreateTagDialog = ({ communityId, onTagCreated }: CreateTagDialogProps) =>
       isPublic: true,
     },
   });
+const onSubmit = async (data: TagFormValues) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/community/${identifier}/create-tag`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // If using token auth
+        },
+        credentials: 'include', // If using cookies
+        body: JSON.stringify({
+          name: data.name.toUpperCase(),
+          description: data.description,
+          isPublic: data.isPublic,
+          ...(!data.isPublic && { accessCode: data.accessCode }) // Only include if private
+        })
+      }
+    );
 
-  const onSubmit = (data: TagFormValues) => {
-    const newTag: Tag = {
-      id: `tag-${Date.now()}`,
-      name: data.name.toUpperCase(),
-      description: data.description,
-      communityId,
-      isPublic: data.isPublic,
-      ...(data.isPublic ? {} : { accessCode: data.accessCode }),
-    };
-    
-    onTagCreated(newTag);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    onTagCreated(result.data); // Assuming your API returns the created tag
     form.reset();
-    toast.success("Tag created successfully"); // Using sonner toast
-  };
+    toast.success("Tag created successfully");
+  } catch (error) {
+    console.error('Error creating tag:', error);
+    toast.error("Failed to create tag");
+  }
+};
+
 
   const watchIsPublic = form.watch("isPublic");
 

@@ -30,7 +30,7 @@ const CommunitySidebar = ({ community, rules, moderators, tags, onTagCreated }: 
   };
 
   // Force the moderator status to true for demonstration purposes
-  const isModerator = true; // This ensures the create tag dialog is visible
+  const isModerator =  true ;// This ensures the create tag dialog is visible
 
   // Helper function to log when the dialog is opened to verify functionality
   const handleOpenAddTagModal = () => {
@@ -47,7 +47,7 @@ const CommunitySidebar = ({ community, rules, moderators, tags, onTagCreated }: 
             <CardTitle className="text-lg font-semibold text-white">About Community</CardTitle>
             {isModerator && onTagCreated && (
               <CreateTagDialog 
-                communityId={community.id} 
+                identifier={community.id} 
                 onTagCreated={(newTag) => {
                   onTagCreated(newTag);
                   toast.success(`Tag "${newTag.name}" created successfully`); // Using sonner
