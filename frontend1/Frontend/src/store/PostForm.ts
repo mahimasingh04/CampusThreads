@@ -1,5 +1,8 @@
-import { Community , Rule,Tag} from '@/types';
+import { Community , CommunityRule, CommunitySummary, Rule,Tag, TagDetail} from '@/types';
 import { atom, selector, selectorFamily } from 'recoil';
+import { fetchCommunities, fetchCommunityRules, fetchCommunityTags } from '@/api/Community';
+
+
 
 
 export const selectedCommunityIdState = atom<string | null>({
@@ -7,12 +10,12 @@ export const selectedCommunityIdState = atom<string | null>({
   default: null,
 });
 
-export const communitiesState = selector<Community>({
+export const communitiesState = selector<CommunitySummary[]>({
      key: 'communitiesState',
   get: async () => {
     try {
       const response = await fetchCommunities();     //fetch all the communities 
-      return response.data;
+      return response
     } catch (error) {
       console.error('Failed to fetch communities:', error);
       return [];
@@ -20,7 +23,7 @@ export const communitiesState = selector<Community>({
   },
 })
 
-export const communityRulesState = selector<Rule[]>({
+export const communityRulesState = selector<CommunityRule[]>({
   key: 'communityRulesState',
   get: async ({ get }) => {
     const communityId = get(selectedCommunityIdState);
@@ -28,7 +31,7 @@ export const communityRulesState = selector<Rule[]>({
     
     try {
       const response = await fetchCommunityRules(communityId);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Failed to fetch community rules:', error);
       return [];
@@ -36,7 +39,7 @@ export const communityRulesState = selector<Rule[]>({
   },
 });
 
-export const communityTagsState = selector<Tag[]>({
+export const communityTagsState = selector<TagDetail[]>({
   key: 'communityTagsState',
   get: async ({ get }) => {
     const communityId = get(selectedCommunityIdState);
@@ -44,7 +47,7 @@ export const communityTagsState = selector<Tag[]>({
     
     try {
       const response = await fetchCommunityTags(communityId);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Failed to fetch community tags:', error);
       return [];
@@ -57,7 +60,7 @@ export const selectedTagsState = atom<Tag[]>({
   default: [],
 });
 
-export const selectedCommunityState = selector<Community | null>({
+export const selectedCommunityState = selector<CommunitySummary | null>({
   key: 'selectedCommunityState',
   get: ({ get }) => {
     const communityId = get(selectedCommunityIdState);

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import { PrismaClient, ContentType } from "@prisma/client"; 
+import { tagsByCommunityId } from "../repositories/TagRepository";
 
 
 const prisma = new PrismaClient();
@@ -56,4 +57,39 @@ if (isPublic && accessCode) {
     });
    }
  }
+
+export const getCommunityTags = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { communityId } = req.params;
+    
+    if (!communityId) {
+     res.status(400).json({
+        success: false,
+        message: 'Community ID is required'
+      });
+      return;
+    }
+
+    const tags = await tagsByCommunityId(communityId);
+
+    const responseData = tags.map(tag => ({
+      id : tag.id,
+      name: tag.name,
+      description: tag.description,
+      isPublic : tag.isPublic
+    }))
+
+    res.status(200).json({
+      success: true,
+      data: responseData
+    });
+  } catch (error) {
+    console.error('Error fetching community tags:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch community tags'
+    });
+  }
+};
+
 

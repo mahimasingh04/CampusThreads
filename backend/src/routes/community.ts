@@ -3,10 +3,10 @@ import { Request, Response } from "express";
 import { generateToken } from "../utils/jwt";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client"; 
-import { createCommunities, joinCommunities, addToCustomFeeds, getCustomFeedPosts, getUserCustomFeeds, getCommunityDetailsById } from "../controllers/communityController";
+import { createCommunities, joinCommunities, getCommunityDetailsById, getAllCommunities, fetchingRulesById } from "../controllers/communityController";
 import { authMiddleware } from "../middleware/authenticateUser";
 import { isCommunityModerator } from "../middleware/AuthoriseMods";
-import { createTag } from "../controllers/tagController";
+import { createTag, getCommunityTags } from "../controllers/tagController";
 
 
 const prisma = new PrismaClient(); 
@@ -23,9 +23,9 @@ communityRouter.get('/getComm/:identifier', authMiddleware, getCommunityDetailsB
 communityRouter.post('/:identifier/create-tag', authMiddleware, isCommunityModerator, createTag);
 communityRouter.post('/joinComm/:communityId', authMiddleware, joinCommunities);
 
-// Custom feed routes
-communityRouter.post('/custom-feed', authMiddleware, addToCustomFeeds);
-communityRouter.get('/custom-feed/:customFeedId', authMiddleware, getCustomFeedPosts);
-communityRouter.get('/custom-feeds', authMiddleware, getUserCustomFeeds);
+communityRouter.get('/getCommunities',authMiddleware , getAllCommunities )
+communityRouter.get('/:communityId/tags', authMiddleware, getCommunityTags )
+communityRouter.get('/:communityId/rules', authMiddleware, fetchingRulesById)
+
 
 export default communityRouter;

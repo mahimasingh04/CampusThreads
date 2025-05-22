@@ -3,7 +3,7 @@
 
 import axios from "axios";
 
-import { Community, Post , Rules, Tag, Moderator } from '@/types/index';
+import { Community, Tag, CommunitySummary, TagDetail, CommunityRule } from '@/types/index';
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
@@ -101,4 +101,53 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
       }     
   }
 
-  
+export const fetchCommunities = async (): Promise<CommunitySummary[]> => {
+  try {
+    const response = await api.get<{ success: boolean; data: CommunitySummary[] }>(
+      '/community/getCommunities'
+    );
+    
+    if (!response.data.success) {
+      throw new Error('Failed to fetch communities');
+    }
+
+    return response.data.data.map(community => ({
+      ...community,
+      createdAt: new Date(community.createdAt) // Convert string to Date object
+    }));
+  } catch (error) {
+    return handleApiError(error, 'Failed to fetch communities');
+  }
+};
+
+export const fetchCommunityTags = async(communityId: string) : Promise<TagDetail[]> => {
+    try{
+       const response = await api.get<{success:boolean; data: TagDetail[]}> (
+        '/:communityId/tags'
+       )
+       if(!response.data.success) {
+        throw new Error('Failed to fetch tags');
+       }
+
+       return response.data.data
+
+    }catch(error) {
+         return handleApiError(error, 'Failed to fetch tags')
+    }
+}
+
+export const fetchCommunityRules =  async(communityId: string): Promise<CommunityRule[]> => {
+
+   try {
+    const response = await api.get(`/api/community/${communityId}/rules`);
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch rules');
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching community rules:', error);
+    throw error;
+  }
+}

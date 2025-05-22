@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 
 import { PrismaClient, Role } from "@prisma/client"; // Import PrismaClient
-
+import { getCommunitiesWithDetails } from "../repositories/CommunityRepository";
+import { fetchCommunityRules } from "../repositories/RulesRepository";
 const prisma = new PrismaClient(); 
+
 
 
 export const createCommunities = async (req: Request, res: Response): Promise<void> => {
@@ -285,11 +287,9 @@ export const getAllCommunities = async (req: Request, res: Response) : Promise<v
       id: community.id,
       name: community.name,
       description: community.description,
-      image: community.image,
-      memberCount: community.members.length,
+      memberCount: community.membersCount,
       rules: community.rules,
       tags: community.tags,
-      recentPosts: community.posts,
       createdAt: community.createdAt
     }));
 
@@ -303,7 +303,39 @@ export const getAllCommunities = async (req: Request, res: Response) : Promise<v
       success: false,
       message: 'Failed to fetch communities'
     });
+  }}
+
+  export const fetchingRulesById = async(req: Request, res: Response) : Promise<void> => {
+     try {
+        const { communityId } = req.params;
+    
+    if (!communityId) {
+      res.status(400).json({
+        success: false,
+        message: 'Community ID is required'
+      });
+      return;
+    }
+
+    const rules = await fetchCommunityRules(communityId)
+
+    const responseData = rules.map(rule => ({
+        order: rule.order,
+        title: rule.title,
+        description : rule.description
+    }))
+       res.status(200).json({
+        success: true,
+        data: responseData
+       })
+     
+     }catch(error) {
+      console.error('error fetching rules:', error)
+       res.status(500).json({
+      success: false,
+      message: 'Failed to fetch rules'
+    });
+     }
   }
-};
 
 

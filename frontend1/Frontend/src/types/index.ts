@@ -178,3 +178,27 @@ export interface CommnityIconProps {
     membersCount: number;
     createdAt : string;
 }
+
+export interface CommunitySummary {
+  id: string;
+  name: string;
+  image:string | null,
+  description: string | null;
+  memberCount: number;
+  rules: Rule[];
+  tags: Tag[];
+  createdAt: string | Date;
+}
+
+export interface TagDetail {
+    id : string,
+    name: string,
+    description: string,
+    isPublic: boolean
+
+}
+export interface CommunityRule {
+    order: number;
+  title: string;
+  description: string | null;
+}
