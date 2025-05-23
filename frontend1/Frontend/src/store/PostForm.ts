@@ -1,4 +1,4 @@
-import { Community , CommunityRule, CommunitySummary, Rule,Tag, TagDetail} from '@/types';
+import { Community , CommunityRule, CommunitySummary, Rule,Tag, TagDetail, PostFormState} from '@/types';
 import { atom, selector, selectorFamily } from 'recoil';
 import { fetchCommunities, fetchCommunityRules, fetchCommunityTags } from '@/api/Community';
 
@@ -69,3 +69,68 @@ export const selectedCommunityState = selector<CommunitySummary | null>({
   },
 });
 
+export const postFormState = atom<PostFormState>({
+  key: 'postFormState',
+  default: {
+    title: '',
+    content: '',
+    type: 'text',
+    imageUrl: '',
+    linkUrl: '',
+    isSubmitting: false,
+  },
+});
+
+export const tagAccessCodesState = atom<{
+  [tagId: string]: {
+    code: string;
+    isValid?: boolean;
+    isLoading?: boolean;
+  };
+}>({
+  key: 'tagAccessCodesState',
+  default: {},
+});
+
+export const privateTagsValidationState = selector({
+  key: 'privateTagsValidationState',
+  get: ({ get }) => {
+    const selectedTags = get(selectedTagsState);
+    const tagAccessCodes = get(tagAccessCodesState);
+    const communityTags = get(communityTagsState);
+    
+    const privateTags = selectedTags.filter(tag => !tag.isPublic);
+    
+    return {
+      allPrivateTagsValid: privateTags.every(tag => {
+        return tagAccessCodes[tag.id]?.isValid === true;
+      }),
+      invalidPrivateTags: privateTags.filter(tag => {
+        return tagAccessCodes[tag.id]?.isValid === false;
+      }),
+      pendingPrivateTags: privateTags.filter(tag => {
+        const accessCode = tagAccessCodes[tag.id];
+        return accessCode && accessCode.isValid === undefined;
+      }),
+    };
+  },
+});
+
+export const postFormValidationState = selector({
+  key: 'postFormValidationState',
+  get: ({ get }) => {
+    const form = get(postFormState);
+    const communityId = get(selectedCommunityIdState);
+    const { allPrivateTagsValid } = get(privateTagsValidationState);
+    
+    const hasTitle = form.title.trim().length > 0;
+    const hasCommunity = !!communityId;
+    
+    return {
+      isValid: hasTitle && hasCommunity && allPrivateTagsValid,
+      hasTitle,
+      hasCommunity,
+      allPrivateTagsValid,
+    };
+  },
+});

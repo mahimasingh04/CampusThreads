@@ -114,6 +114,7 @@ model Tag {
   posts         Post[]
 
    @@unique([name, communityId])
+    @@unique([id, accessCode]) // Important for validation
   
   // Index for better performance on common queries
   @@index([communityId])

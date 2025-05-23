@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { PrismaClient, ContentType } from "@prisma/client"; 
 import { tagsByCommunityId } from "../repositories/TagRepository";
+import { compareAccessCode } from "../utils/crypto";
 
 
 const prisma = new PrismaClient();
@@ -93,3 +94,47 @@ export const getCommunityTags = async (req: Request, res: Response): Promise<voi
 };
 
 
+export const verifyAccessTag = async(req: Request, res: Response) :Promise<void> =>{
+  try {
+  const { tagId, accessCode } = req.body;
+
+    if (!tagId || !accessCode) {
+      res.status(400).json({ error: 'Missing tagId or accessCode' });
+      return;
+    }
+
+     const tag = await prisma.tag.findUnique({
+      where : {
+        id: tagId
+      },
+       select: {
+        id: true,
+        accessCode: true,
+        isPublic: true
+      }
+     })
+    
+      if (!tag) {
+       res.status(404).json({ isValid: false, error: 'Tag not found' });
+       return;
+    }
+ if (tag.isPublic) {
+      res.json({ isValid: true });
+      return;
+    }
+      // In your route handler
+const isValid =  tag.accessCode === accessCode;
+       if (!isValid) {
+       res.status(403).json({ isValid: false });
+       return;
+    }
+
+   res.json({
+    isValid: true
+   });
+  }catch(Error) {
+       console.error('Error verifying tag access code:', Error);
+     res.status(500).json({ error: 'Internal server error' });
+     return;
+  }
+}

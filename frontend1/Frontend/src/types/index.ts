@@ -202,3 +202,12 @@ export interface CommunityRule {
   title: string;
   description: string | null;
 }
+
+export interface PostFormState {
+  title: string;
+  content: string;
+  type: 'text' | 'image' | 'link'; // assuming these are the possible types
+  imageUrl: string;
+  linkUrl: string;
+  isSubmitting: boolean;
+}

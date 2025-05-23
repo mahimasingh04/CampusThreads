@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv';
 import cors from 'cors';
+import tagRouter from './routes/tag';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(cookieParser());
 
 app.use("/api/user", userRouter);
 app.use("/api/community", communityRouter);
+app.use("/api/tags", tagRouter);
 
 
 const port = process.env.PORT || 3000;
