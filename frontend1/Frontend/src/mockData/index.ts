@@ -8,6 +8,13 @@ export const mockUser: User = {
   avatarUrl: 'https://avatars.githubusercontent.com/u/1',
 };
 
+export const currentUser: User = {
+  id: "1",
+  username: "john_doe",
+  avatarUrl: "https://i.pravatar.cc/150?img=3",
+ 
+};
+
 // Mock communities
 export const mockCommunities: Community[] = [
   {

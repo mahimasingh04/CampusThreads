@@ -1,123 +1,54 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { 
-  MessageCircle, 
-  PlusCircle, 
-  Bell, 
-  User,
-  Search
-} from 'lucide-react';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { currentUserState } from '@/store/Atom';
+import { Link } from "react-router-dom";
+import { Search, Bell, User, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { currentUser } from "@/mockData/index";
+import CreatePostDialog from "@/components/posts/createPostDialog"
 
-const NavbarFeed : React.FC = () => {
-  const [currentUser] = useRecoilState(currentUserState);
 
+const Navbar = () => {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-slate-800 border-b border-slate-700">
-      <div className="flex items-center justify-between px-4 h-14">
-        {/* Logo */}
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center">
-            <svg 
-              className="w-8 h-8 mr-2 text-white" 
-              viewBox="0 0 100 100"
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="6" />
-              <circle cx="50" cy="35" r="15" fill="currentColor" />
-              <path d="M25 65C25 57.268 35.67 50 50 50C64.33 50 75 57.268 75 65" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
-            </svg>
-            <span className="font-bold text-xl text-white">Campus Threads</span>
+    <header className="fixed top-0 z-50 w-full border-b border-slate-800 bg-slate-900 text-white">
+      <div className="flex h-16 items-center px-4">
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="text-2xl font-bold text-orange-500">campusTHREADS</div>
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="flex-1 max-w-xl mx-4">
+        <div className="flex-1 mx-6">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-4 w-4 text-slate-400" />
-            </div>
-            <Input 
-              type="text" 
-              placeholder="Search CampusThreads" 
-              className="pl-10 bg-slate-900 border-slate-700 text-white placeholder:text-slate-400 focus-visible:ring-slate-600"
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              type="search"
+              placeholder="Search communities, posts, and more..."
+              className="w-full max-w-xl rounded-full bg-slate-800 pl-8 pr-4 focus:ring-orange-500 border-slate-700 placeholder:text-slate-400"
             />
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center space-x-2">
-          <Link to="/chat">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-          </Link>
+        <div className="flex items-center space-x-3">
           
-          <Link to="/create-post">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-              <PlusCircle className="h-5 w-5" />
-            </Button>
-          </Link>
+          <CreatePostDialog />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-slate-700">
-                <Bell className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 bg-slate-800 text-white border-slate-700">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-slate-700" />
-              <div className="py-2 px-3 text-sm text-slate-300">
-                No new notifications
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="overflow-hidden hover:bg-slate-700">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser?.avatarUrl} />
-                  <AvatarFallback className="bg-primary text-white">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-slate-800 text-white border-slate-700">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-slate-700" />
-              <DropdownMenuItem className="hover:bg-slate-700">
-                <Link to="/profile" className="w-full">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-slate-700">
-                <Link to="/settings" className="w-full">Settings</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-slate-700" />
-              <DropdownMenuItem className="hover:bg-slate-700">
-                Log Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button variant="ghost" size="icon" className="text-slate-300 hover:bg-slate-800">
+            <Bell className="h-5 w-5" />
+          </Button>
+
+          <Button variant="ghost" size="icon" className="text-slate-300 hover:bg-slate-800">
+            <User className="h-5 w-5" />
+          </Button>
+
+          <Avatar className="h-8 w-8 border border-slate-700">
+            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.username} />
+            <AvatarFallback>{currentUser.username.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
-export default NavbarFeed;
+export default Navbar;

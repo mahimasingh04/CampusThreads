@@ -1,4 +1,4 @@
-import { Community , CommunityRule, CommunitySummary, Rule,Tag, TagDetail, PostFormState} from '@/types';
+import { Community , CommunityRule, CommunitySummary, Rule,Tag, TagDetail, PostFormState, Post} from '@/types';
 import { atom, selector, selectorFamily } from 'recoil';
 import { fetchCommunities, fetchCommunityRules, fetchCommunityTags } from '@/api/Community';
 
@@ -55,12 +55,12 @@ export const communityTagsState = selector<TagDetail[]>({
   },
 });
 
-export const selectedTagsState = atom<Tag[]>({
+export const selectedTagsState = atom<TagDetail[]>({
   key: 'selectedTagsState',
   default: [],
 });
 
-export const selectedCommunityState = selector<CommunitySummary | null>({
+export const selectedCommunityState = selector<CommunitySummary| null >({
   key: 'selectedCommunityState',
   get: ({ get }) => {
     const communityId = get(selectedCommunityIdState);
@@ -133,4 +133,14 @@ export const postFormValidationState = selector({
       allPrivateTagsValid,
     };
   },
+});
+
+export const editPostState = atom<Post | undefined>({
+  key: 'editPostState',
+  default: undefined,
+});
+
+export const isEditingState = atom<boolean>({
+  key: 'isEditingState',
+  default: false,
 });
