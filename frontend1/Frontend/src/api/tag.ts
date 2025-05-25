@@ -24,10 +24,11 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
 export const verifyTagAccessCode = async (
   tagId: string,
   accessCode: string
-): Promise<{ isValid: boolean }> => {
+): Promise<any> => {
    try {
    const response = await api.post('/private-tag/isValid')
-   
+    return  response.data.data
+    
    }catch(error) {
 
    }

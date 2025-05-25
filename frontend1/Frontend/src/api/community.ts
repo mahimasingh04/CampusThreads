@@ -123,13 +123,17 @@ export const fetchCommunities = async (): Promise<CommunitySummary[]> => {
 export const fetchCommunityTags = async(communityId: string) : Promise<TagDetail[]> => {
     try{
        const response = await api.get<{success:boolean; data: TagDetail[]}> (
-        '/:communityId/tags'
+        `/community/${communityId}/tags`
+       
        )
+
+       console.log('fetched Tags : ', response.data.data)
        if(!response.data.success) {
         throw new Error('Failed to fetch tags');
        }
 
        return response.data.data
+       
 
     }catch(error) {
          return handleApiError(error, 'Failed to fetch tags')
@@ -139,7 +143,7 @@ export const fetchCommunityTags = async(communityId: string) : Promise<TagDetail
 export const fetchCommunityRules =  async(communityId: string): Promise<CommunityRule[]> => {
 
    try {
-    const response = await api.get(`/api/community/${communityId}/rules`);
+    const response = await api.get(`/community/${communityId}/rules`);
     
     if (!response.data.success) {
       throw new Error(response.data.message || 'Failed to fetch rules');

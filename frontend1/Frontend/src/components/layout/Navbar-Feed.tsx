@@ -6,6 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { currentUser } from "@/mockData/index";
 import CreatePostDialog from "@/components/posts/createPostDialog"
+import CreateTagDialog from "../community/CreateTagDialog";
+import { Suspense } from "react";
+import LoadingSpinner from "../Loading";
+import { Tag } from "@/types";
 
 
 const Navbar = () => {
@@ -31,7 +35,9 @@ const Navbar = () => {
 
         <div className="flex items-center space-x-3">
           
-          <CreatePostDialog />
+          <Suspense fallback={<LoadingSpinner />}>
+  <CreatePostDialog  />
+</Suspense>
           
           <Button variant="ghost" size="icon" className="text-slate-300 hover:bg-slate-800">
             <Bell className="h-5 w-5" />

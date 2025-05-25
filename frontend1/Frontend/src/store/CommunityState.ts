@@ -105,50 +105,6 @@ export const communityDataState = selector<CommunityData | null>({
 
 
 
-const fetchCommunities = async (): Promise<Community[]> => {
-  try {
-    const response = await fetch('/api/communities');
-    if (!response.ok) throw new Error('Failed to fetch communities');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching communities:', error);
-    return []; // Return empty array as fallback
-  }
-};
-
-export const communitiesState = atom<Community[]>({
-  key: "communitiesState",
-  default: fetchCommunities(), // This will automatically fetch when first used
-});
-
-export const communityRulesState = atom<Record<string, Rule[]>>({
-  key: "communityRulesState",
-  default: {},
-});
-
-export const communityTagsState = atom<Record<string, Tag[]>>({
-  key: "communityTagsState",
-  default: {},
-});
-
-export const selectedCommunityIdState = atom<string | null>({
-  key: "selectedCommunityIdState",
-  default: null,
-});
 
 
-export const selectedCommunityState = selector<Community | null>({
-  key: "selectedCommunityState",
-  get: ({ get }) => {
-    const communities = get(communitiesState);
-    const selectedId = get(selectedCommunityIdState);
-    if (!selectedId) return null;
-    
-    const community = communities.find(c => c.id === selectedId);
-    if (!community) {
-      console.warn(`Community with ID ${selectedId} not found`);
-      return null;
-    }
-    return community;
-  },
-});
+

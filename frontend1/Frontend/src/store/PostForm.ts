@@ -14,7 +14,8 @@ export const communitiesState = selector<CommunitySummary[]>({
      key: 'communitiesState',
   get: async () => {
     try {
-      const response = await fetchCommunities();     //fetch all the communities 
+      const response = await fetchCommunities(); 
+      console.log('[DEBUG] Communities API response:', response);    //fetch all the communities 
       return response
     } catch (error) {
       console.error('Failed to fetch communities:', error);
@@ -31,6 +32,7 @@ export const communityRulesState = selector<CommunityRule[]>({
     
     try {
       const response = await fetchCommunityRules(communityId);
+      console.log("fetched rules: ",response)
       return response;
     } catch (error) {
       console.error('Failed to fetch community rules:', error);

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useRecoilState } from "recoil";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Edit, Plus } from "lucide-react";
 import PostForm from "@/components/posts/PostForm";
@@ -48,10 +48,13 @@ const CreatePostDialog = ({ post, variant = "create" }: CreatePostDialogProps) =
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col bg-slate-900 border-slate-700">
+      <DialogContent className="max-w-4xl h-[90vh] overflow-y-auto  flex flex-col bg-slate-900 border-slate-700 text-white">
         <DialogHeader>
           <DialogTitle>{isEditingMode ? "Edit Post" : "Create a Post"}</DialogTitle>
         </DialogHeader>
+          <DialogDescription>
+     Fill out the form to create or edit your post.
+  </DialogDescription>
         <PostForm onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>

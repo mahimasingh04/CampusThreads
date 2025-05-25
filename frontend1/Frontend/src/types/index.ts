@@ -198,7 +198,7 @@ export interface TagDetail {
 
 }
 export interface CommunityRule {
-    order: number;
+  order: number;
   title: string;
   description: string | null;
 }

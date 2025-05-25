@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "../ui/input";
@@ -38,6 +38,7 @@ const PostForm = ({onClose} : PostFormProps) => {
       const [tagAccessCodes, setTagAccessCodes] = useRecoilState(tagAccessCodesState);
      const [postForm, setPostForm] = useRecoilState(postFormState);
 
+   const [isLoading, setIsLoading] = useState(true);
 
      const communities = useRecoilValue(communitiesState);
      const communityTags = useRecoilValue(communityTagsState);
@@ -47,6 +48,19 @@ const PostForm = ({onClose} : PostFormProps) => {
 
     const [showTagSelector, setShowTagSelector] = useState(false);
     const [showAccessCodeInput, setShowAccessCodeInput] = useState<string | null>(null);
+
+
+    useEffect(() => {
+  if (communities.length > 0) {
+    setIsLoading(false);
+  }
+}, [communities]);
+
+  // Add this useEffect
+  useEffect(() => {
+    console.log('[DEBUG] Current communities state:', communities);
+    console.log('[DEBUG] Selected community state:', selectedCommunity);
+  }, [communities, selectedCommunity]);
 
    // Handle form field changes
   const handleFormChange = (field: keyof PostFormState, value: string | boolean) => {
@@ -149,8 +163,12 @@ const handleSubmit = async() => {
             value={selectedCommunityId || undefined}
           >
             <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-              <SelectValue placeholder="Select a community" />
-            </SelectTrigger>
+    {isLoading ? (
+      <span className="text-slate-400">Loading communities...</span>
+    ) : (
+      <SelectValue placeholder="Select a community" />
+    )}
+  </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700">
               {communities.map((community) => (
                 <SelectItem key={community.id} value={community.id}>
