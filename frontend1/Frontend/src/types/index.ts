@@ -59,6 +59,20 @@ export interface User {
     isCollaboration?: boolean;
     collaborationDetails?: CollaborationDetails
   }
+
+export type CollaborationRequest = {
+  id: string;
+  postId: string;
+  applicant: User;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  message?: string;
+};
+
+
+
+
+
   
   export interface Comment {
     id: string;
@@ -152,14 +166,7 @@ export type CollaborationRole = {
       totalPages: number;
     };
   }
- export interface HackathonPost extends Post {
-  teamMembers: User[];
-  requiredSkills: string[];
-  eventDate: string;
-  location: string;
-  teamSize: number;
-  currentMembers: number;
-}
+ 
 
 export interface Moderator {
   id: string,
