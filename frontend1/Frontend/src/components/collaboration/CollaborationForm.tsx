@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useRecoilValue, useRecoilState,  } from "recoil";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Link as LinkIcon, MapPin, Plus, Send, X, Key } from "lucide-react";
+import { Card } from "../ui/card";
+import { DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import {
     selectedCommunityIdState,
   communitiesState,
@@ -13,10 +21,11 @@ import {
  postFormValidationState,
  privateTagsValidationState,
  tagAccessCodesState,
-editPostState
+editPostState,
+isEditingState
 } from "@/store/PostForm"
 
-import { PostFormState, Tag, TagDetail, Post, CollaborationRole, TagAcccessCodeMap} from "@/types";
+import { PostFormState, Tag, TagDetail, Post, CollaborationRole} from "@/types";
 import { verifyTagAccessCode } from "@/api/tag";
 
 interface CollaborationFormProps {
@@ -39,19 +48,19 @@ const predefinedRoles: CollaborationRole[] = [
 
 const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
       const [selectedCommunityId, setSelectedCommunityId]  = useRecoilState(selectedCommunityIdState)
-      const communityRules = useRecoilValue(communityRulesState);
+    
      const [selectedTags, setSelectedTags] = useRecoilState(selectedTagsState);
       const [tagAccessCodes, setTagAccessCodes] = useRecoilState(tagAccessCodesState);
      const [postForm, setPostForm] = useRecoilState(postFormState);
-        const [editPost, setEditPost] = useRecoilState(editPostState);
-   const [isLoading, setIsLoading] = useState(true);
+     const [isEditing, setIsEditing] = useRecoilState(isEditingState);
+      const [editPost, setEditPost] = useRecoilState(editPostState);
+      const [isLoading, setIsLoading] = useState(true);
 
      const communities = useRecoilValue(communitiesState);
      const communityTags = useRecoilValue(communityTagsState);
      const selectedCommunity = useRecoilValue(selectedCommunityState);
      const { isValid, allPrivateTagsValid } = useRecoilValue(postFormValidationState);
-  const { invalidPrivateTags } = useRecoilValue(privateTagsValidationState);
-
+   
     const [showTagSelector, setShowTagSelector] = useState(false);
     const [showAccessCodeInput, setShowAccessCodeInput] = useState<string | null>(null);
 
@@ -73,62 +82,191 @@ const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
 
 
 
-     // Load data if editing an existing post
-  useEffect(() => {
-    if (postToEdit && postToEdit.isCollaboration && postToEdit.collaborationDetails) {
-      const community = communities.find(c => c.id === postToEdit.communityId);
-      if (community) setSelectedCommunity(community);
-      
-      setEventName(postToEdit.title);
-      setDescription(postToEdit.content);
-      
-      if (postToEdit.collaborationDetails) {
-        const { eventDate, location, eventLink, rolesNeeded, totalSpots, filledSpots } = postToEdit.collaborationDetails;
-        setEventDate(eventDate || "");
-        setLocation(location || "");
-        setEventLink(eventLink || "");
-        setTotalSpots(totalSpots || 0);
-        setFilledSpots(filledSpots || 0);
-        
-        // Load roles
-        if (rolesNeeded && rolesNeeded.length > 0) {
-          const loadedRoles = rolesNeeded.map(roleName => {
-            const predefinedRole = predefinedRoles.find(r => r.name === roleName);
-            return predefinedRole || { id: `custom-${Date.now()}-${roleName}`, name: roleName };
-          });
-          setSelectedRoles(loadedRoles);
-        }
-        
-        // Load tags and their access codes
-        if (postToEdit.tags && postToEdit.tags.length > 0) {
-          setSelectedTags(postToEdit.tags);
-          
-          // Load access codes for private tags if available
-          // In a real app, this would be handled by the backend
-          const accessCodesMap: TagAccessCodeMap = {};
-          postToEdit.tags.forEach(tag => {
-            if (!tag.isPublic && tag.accessCode) {
-              accessCodesMap[tag.id] = tag.accessCode;
-            }
-          });
-          setTagAccessCodes(accessCodesMap);
-        }
-      }
-      
-      setAskingForSpots(false);
+    useEffect(() => {
+    if (postToEdit) {
+      setIsEditing(true);
+      setEditPost(postToEdit);
+      initializeEditState(postToEdit);
     }
+    return () => {
+      setIsEditing(false);
+      setEditPost(undefined);
+    };
   }, [postToEdit]);
 
 
-    useEffect(() => {
-        if (selectedCommunityId) {
-        const community = communities.find(c => c.id === selectedCommunityId);
-        if (community) {
-            selectedCommunity(community);
-        }
-        }
-    }, [selectedCommunityId, communities]);
+   useEffect(() => {
+    if (communities.length > 0) {
+      setIsLoading(false);
+    }
+  }, [communities]);
 
+  
+    const initializeEditState = (post: Post) => {
+    setSelectedCommunityId(post.communityId);
+    setPostForm({
+      title: post.title,
+      content: post.content,
+      type: "collaboration",
+      imageUrl: post.imageUrl || "",
+      linkUrl: post.linkUrl || "",
+      isSubmitting: false
+    });
+
+    if (post.collaborationDetails) {
+      setEventDate(post.collaborationDetails.eventDate || "");
+      setLocation(post.collaborationDetails.location || "");
+      setEventLink(post.collaborationDetails.eventLink || "");
+      setTotalSpots(post.collaborationDetails.totalSpots || 0);
+      setFilledSpots(post.collaborationDetails.filledSpots || 0);
+      
+      const roles = post.collaborationDetails.rolesNeeded.map(name => 
+        predefinedRoles.find(r => r.name === name) || { id: `custom-${Date.now()}-${name}`, name }
+      );
+      setSelectedRoles(roles);
+    }
+
+  if (post.tags) {
+      setSelectedTags(post.tags);
+      const codes = post.tags.reduce((acc, tag) => {
+        if (tag.accessCode) {
+          acc[tag.id] = {
+            code: tag.accessCode,
+            isValid: true,
+            isLoading: false
+          };
+        }
+        return acc;
+      }, {} as Record<string, { code: string; isValid?: boolean; isLoading?: boolean }>);
+      setTagAccessCodes(codes);
+    }
+  };
+
+   const handleTagSelection = (tag: TagDetail) => {
+    if (selectedTags.some(t => t.id === tag.id)) {
+      removeTag(tag.id);
+    } else {
+      if (!tag.isPublic) {
+        setShowAccessCodeInput(tag.id);
+      } else {
+        setSelectedTags([...selectedTags, tag]);
+      }
+    }
+  };
+
+  const handleAccessCodeSubmit =  async (tagId : string, code: string) => {
+     setTagAccessCodes(prev => ({
+    ...prev,
+    [tagId]: {
+      code,
+      isValid: undefined, // Reset validation state
+      isLoading: true
+    }
+  }));
+
+  try {
+    const isValid = await verifyTagAccessCode(tagId, code);
+    setTagAccessCodes(prev => ({
+      ...prev,
+       [tagId]: {
+        code,
+        isValid: isValid,
+        isLoading: false
+      }
+    }))
+    if (isValid) {
+      const tag = communityTags.find(t => t.id === tagId);
+      if (tag) {
+        setSelectedTags([...selectedTags, tag]);
+        toast.success(`Access code accepted for tag: ${tag.name}`);
+      }
+    } else {
+      toast.error("Invalid access code. Please try again.");
+    }
+
+  }catch(error) {
+    console.error("Error verifying access code:", error);
+    setTagAccessCodes(prev => ({
+      ...prev,
+      [tagId]: {
+        code,
+        isValid: false,
+        isLoading: false
+      }
+    }));
+    toast.error("Failed to verify access code. Please try again later.");
+  }
+  }
+
+    const removeTag = (tagId: string) => {
+    setSelectedTags(selectedTags.filter(tag => tag.id !== tagId));
+    setTagAccessCodes(prev => {
+      const newCodes = { ...prev };
+      delete newCodes[tagId];
+      return newCodes;
+    });
+  };
+
+   const removeRole = (roleId: string) => {
+    setSelectedRoles(selectedRoles.filter(role => role.id !== roleId));
+   };
+
+   const handleRoleSelection = (role: CollaborationRole) => {
+      setSelectedRoles(prev => 
+      prev.some(r => r.id === role.id)
+        ? prev.filter(r => r.id !== role.id)
+        : [...prev, role]
+    );
+   }
+
+
+    const addCustomRole = () => {
+    if (customRole.trim() && !selectedRoles.some(r => r.name.toLowerCase() === customRole.toLowerCase())) {
+      setSelectedRoles(prev => [
+        ...prev,
+        { id: `custom-${Date.now()}`, name: customRole.trim() }
+      ]);
+      setCustomRole("");
+    }
+  };
+
+  const handleSpotsChange = (value: string) => {
+    const spotsValue = parseInt(value);
+    if (!isNaN(spotsValue) && spotsValue > 0) {
+      setTotalSpots(spotsValue);
+      setAskingForSpots(false);
+    }
+  };
+
+   const handleSubmit = async () => {
+    if (!isValid || !allPrivateTagsValid) {
+      toast.error("Please resolve all validation issues before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+   
+
+    try {
+      // Call API to create or update the post
+      if (isEditing && editPost) {
+        // Update existing post logic here
+        // await updatePost(editPost.id, postData);
+        toast.success("Collaboration post updated successfully!");
+      } else {
+        // Create new post logic here
+        // await createPost(postData);
+        toast.success("Collaboration post created successfully!");
+      }
+      
+      onClose?.();
+    } catch (error) {
+      console.error("Error submitting collaboration form:", error);
+      toast.error("Failed to submit collaboration post. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+   }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-hidden">
@@ -200,6 +338,21 @@ const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
               </div>
             </div>
 
+
+             <div className="space-y-2">
+              <label className="text-sm font-medium text-white">Event Link (optional)</label>
+              <div className="relative">
+                <LinkIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Input 
+                  placeholder="https://hackathon-website.com" 
+                  className="pl-9 bg-slate-800 border-slate-700 text-white"
+                  value={eventLink}
+                  onChange={(e) => setEventLink(e.target.value)}
+                />
+              </div>
+            </div>
+
+    {            /* Tags section*/ }
        <div className="space-y-2">
               <label className="text-sm font-medium text-white">Tags</label>
               <div className="flex flex-wrap gap-2 min-h-10 items-center">
@@ -220,16 +373,136 @@ const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
                   </Badge>
                 ))}
                 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowTagSelector(true)}
-                  className="border-slate-600 text-white hover:bg-slate-700"
-                >
-                  Add tags
-                </Button>
+                 <AlertDialog open={showTagSelector} onOpenChange={setShowTagSelector}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowTagSelector(true)}
+                    className="border-slate-600 text-white hover:bg-slate-700"
+                  >
+                    Add tags
+                  </Button>
+                   <AlertDialogContent className="bg-slate-900 border-slate-700 max-w-md">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-white">Add tags</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-400">
+                        Select tags to categorize your collaboration post
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    
+                    <div className="py-4 max-h-[300px] overflow-y-auto space-y-2">
+                      {communityTags.length === 0 ? (
+                        <p className="text-slate-400 text-center">No tags available for this community</p>
+                      ) : (
+                        communityTags.map(tag => (
+                          <div key={tag.id} className="flex items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              id={`tag-${tag.id}`} 
+                              checked={selectedTags.some(t => t.id === tag.id)}
+                              onChange={() => handleTagSelection(tag)}
+                              className="rounded text-orange-500 focus:ring-orange-500 bg-slate-700 border-slate-600"
+                            />
+                            <label htmlFor={`tag-${tag.id}`} className="flex-1 text-white">
+                              <Badge 
+                                className={`cursor-pointer px-3 py-1 flex items-center ${
+                                  selectedTags.some(t => t.id === tag.id) 
+                                    ? tag.isPublic 
+                                      ? 'bg-orange-500 hover:bg-orange-600'
+                                      : 'bg-purple-500 hover:bg-purple-600'
+                                    : tag.isPublic
+                                      ? 'bg-slate-700 hover:bg-slate-600'
+                                      : 'bg-purple-700 hover:bg-purple-600'
+                                }`}
+                              >
+                                {!tag.isPublic && <Key size={12} className="mr-1" />}
+                                {tag.name}
+                                {!tag.isPublic && (
+                                  <span className="ml-1 text-xs italic">(Private)</span>
+                                )}
+                              </Badge>
+                            </label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-transparent text-white border-slate-600 hover:bg-slate-800 hover:text-white">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => setShowTagSelector(false)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        Add
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                  </AlertDialog>
+  
+
+               {/* Private Tag Access Code Dialog */}
+
+                {showAccessCodeInput && (
+                  <AlertDialog open={!!showAccessCodeInput} onOpenChange={(open) => !open && setShowAccessCodeInput(null)}>
+                    <AlertDialogContent className="bg-slate-900 border-slate-700 max-w-md">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white flex items-center">
+                          <Key className="mr-2" /> Private Tag Access Code
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-400">
+                          This tag is private. Please enter the access code to use this tag.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      
+                      <div className="py-4">
+                        <Input
+                          type="password"
+                          placeholder="Enter access code"
+                          className="bg-slate-800 border-slate-700 text-white"
+                          onChange={(e) => {
+                            // In a real app, we would validate this against the backend
+                          }}
+                          id="collab-access-code-input"
+                        />
+                        <p className="text-xs text-slate-400 mt-2">
+                          {/* Comment: In a real application, this would verify the code with the backend */}
+                          Ask the tag creator or community moderator for the access code
+                        </p>
+                      </div>
+                      
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-transparent text-white border-slate-600 hover:bg-slate-800 hover:text-white">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => {
+                            // Get the current tag being processed
+                            const tag = communityTags.find(t => t.id === showAccessCodeInput);
+                            const accessCode = (document.getElementById("collab-access-code-input") as HTMLInputElement).value;
+                            
+                            if (tag && accessCode) {
+                              handleAccessCodeSubmit(tag.id, accessCode);
+                              // Now add the tag since access code is provided
+                              setSelectedTags([...selectedTags, tag]);
+                            } else {
+                              toast.error("Please enter an access code");
+                            }
+                          }}
+                          className="bg-purple-500 hover:bg-purple-600 text-white"
+                        >
+                          Submit
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+
               </div>
             </div>
+      
+
      {/* Description */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Team Project Description</label>
@@ -242,30 +515,125 @@ const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
             </div>
             {/* Roles Needed */}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Roles Needed</label>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
+              <label className="text-sm font-medium text-white">Looking for:</label>
+              <div className="flex flex-wrap gap-2 min-h-10 items-center">
                 {selectedRoles.map((role) => (
                   <Badge 
                     key={role.id} 
-                    className="py-1 px-3 bg-blue-700 hover:bg-blue-600 cursor-pointer"
-                    onClick={() => removeRole(role.id)}
+                    className="bg-slate-700 hover:bg-slate-600 text-white py-1 px-3 flex items-center gap-1"
                   >
                     {role.name}
-                    <X size={14} className="ml-1" />
+                    <X 
+                      size={14} 
+                      className="cursor-pointer" 
+                      onClick={() => removeRole(role.id)}
+                    />
                   </Badge>
                 ))}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowRoleSelector(true)}
-                  className="border-slate-600 text-white hover:bg-slate-700"
-                >
-                  Add Role
-                </Button>
-              </div>
-
+                 <AlertDialog open={showRoleSelector} onOpenChange={setShowRoleSelector}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowRoleSelector(true)}
+                    className="border-slate-600 text-white hover:bg-slate-700"
+                  >
+                    Add roles
+                  </Button>
+                   <AlertDialogContent className="bg-slate-900 border-slate-700 max-w-md">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-white">Add team roles</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-400">
+                        Select the roles you're looking for
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                     <div className="py-4 max-h-[300px] overflow-y-auto space-y-2">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Input
+                          placeholder="Add custom role..."
+                          value={customRole}
+                          onChange={(e) => setCustomRole(e.target.value)}
+                          className="bg-slate-800 border-slate-700 text-white"
+                        />
+                        <Button 
+                          onClick={addCustomRole}
+                          disabled={!customRole.trim()}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                         {predefinedRoles.map(role => (
+                        <div key={role.id} className="flex items-center gap-2">
+                          <input 
+                            type="checkbox" 
+                            id={`role-${role.id}`} 
+                            checked={selectedRoles.some(r => r.id === role.id)}
+                            onChange={() => handleRoleSelection(role)}
+                            className="rounded text-indigo-500 focus:ring-indigo-500 bg-slate-700 border-slate-600"
+                          />
+                           <label htmlFor={`role-${role.id}`} className="flex-1 text-white">
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${
+                                selectedRoles.some(r => r.id === role.id) 
+                                  ? 'bg-indigo-500 hover:bg-indigo-600' 
+                                  : 'bg-slate-700 hover:bg-slate-600'
+                              }`}
+                            >
+                              {role.name}
+                            </Badge>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                     <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-transparent text-white border-slate-600 hover:bg-slate-800 hover:text-white">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => setShowRoleSelector(false)}
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                      >
+                        Add
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                 </div>
             </div>
+
+             {/* Team Composition */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">Team Composition:</label>
+              {askingForSpots ? (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-300">How many members do you need?</label>
+                  <Input 
+                    type="number" 
+                    min="1"
+                    className="w-20 bg-slate-800 border-slate-700 text-white"
+                    onChange={(e) => handleSpotsChange(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-6">
+                  <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold">
+                      {totalSpots - filledSpots}
+                    </div>
+                    <span className="text-sm text-slate-300 mt-1">Spots left</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl font-bold">
+                      {filledSpots}
+                    </div>
+                    <span className="text-sm text-slate-300 mt-1">Filled</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+               {/* Submit buttons */}
             <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
               <DialogClose asChild>
                 <Button variant="outline" className="border-slate-600 text-white hover:bg-slate-800">
@@ -274,79 +642,122 @@ const CollaborationForm = ({onClose, postToEdit} :CollaborationFormProps) => {
               </DialogClose>
               <Button 
                 onClick={handleSubmit}
-                disabled={!isFormValid || !allPrivateTagsValid}
+                disabled={!selectedCommunity || !eventName.trim() || !description.trim() || totalSpots <= 0 || isSubmitting}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
               >
-                <Send size={16} /> {isEditing ? "Update" : "Post"}
+                {isSubmitting ? (isEditing ? "Updating..." : "Posting...") : (
+                  <>
+                    <Send size={16} /> {isEditing ? "Update" : "Post"}
+                  </>
+                )}
               </Button>
             </div>
-            </div>
-            )}
-        </div>
-
-           {/* Preview Section */}
-      <div className="border-l border-slate-700 pl-4 space-y-4 overflow-y-auto hidden md:block">
-        {/* Preview implementation similar to original */}
-      </div>
-
-       {/* Modals */}
-      {showTagSelector && (
-        <TagSelectorModal 
-          tags={communityTags}
-          selectedTags={selectedTags}
-          onSelect={handleTagSelection}
-          onClose={() => setShowTagSelector(false)}
-        />
-      )}
-        {showRoleSelector && (
-            <RoleSelectorModal 
-            roles={predefinedRoles}
-            selectedRoles={selectedRoles}
-            onSelect={handleRoleSelection}
-            onClose={() => setShowRoleSelector(false)}
-            />
+          </div>
         )}
-
-          {showAccessCodeInput && (
-        <AccessCodeModal
-          tag={communityTags.find(t => t.id === showAccessCodeInput)!}
-          onSubmit={handleAccessCodeSubmit}
-          onClose={() => setShowAccessCodeInput(null)}
-        />
-      )}
+      </div>
+      
+      {/* Preview Section */}
+      <div className="border-l border-slate-700 pl-4 space-y-4 overflow-y-auto hidden md:block">
+        <h3 className="font-semibold text-lg text-white">Post Preview</h3>
+        
+        {selectedCommunity && eventName && (
+          <Card className="bg-slate-800 border-slate-700 overflow-hidden">
+            <div className="bg-indigo-600 p-4 text-white">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-bold">{eventName || "Hackathon Title"}</h3>
+                  <div className="flex items-center mt-1 space-x-2 text-white/80 text-sm">
+                    {eventDate && (
+                      <>
+                        <Calendar size={14} />
+                        <span>{eventDate}</span>
+                      </>
+                    )}
+                    {location && (
+                      <>
+                        <span>•</span>
+                        <MapPin size={14} />
+                        <span>{location}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <span className="ml-4 bg-white text-indigo-600 px-3 py-1 rounded-full text-sm font-medium">
+                  Looking for members
+                </span>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <h4 className="font-medium mb-2 text-white">Team Information</h4>
+              <p className="text-slate-300 text-sm mb-4">{description || "Team project description will appear here..."}</p>
+              
+              {/* Tags preview */}
+              {selectedTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedTags.map(tag => (
+                    <Badge 
+                      key={tag.id} 
+                      className={`${
+                        tag.isPublic ? 'bg-slate-700' : 'bg-purple-700 flex items-center'
+                      } text-white`}
+                    >
+                      {!tag.isPublic && <Key size={12} className="mr-1" />}
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              
+              {selectedRoles.length > 0 && (
+                <>
+                  <h4 className="font-medium mb-2 text-white">Looking for:</h4>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedRoles.map(role => (
+                      <Badge key={role.id} className="bg-slate-700 text-white">{role.name}</Badge>
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {!askingForSpots && (
+                <>
+                  <h4 className="font-medium mb-2 text-white">Team Composition:</h4>
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-lg font-bold">
+                        {totalSpots - filledSpots}
+                      </div>
+                      <span className="text-xs text-slate-300 mt-1">Spots left</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-lg font-bold">
+                        {filledSpots}
+                      </div>
+                      <span className="text-xs text-slate-300 mt-1">Filled</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              <div className="mt-6">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Apply to Join Team
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+        
+        <div className="text-sm text-slate-300 italic">
+          <p>This is a preview of how your post will appear to other users.</p>
+          <p className="mt-2">Fill out all the details on the left to see the complete preview.</p>
+        </div>
+      </div>
     </div>
-    )
-    
-}
-
-// Helper Components
-const TagSelectorModal = ({ tags, selectedTags, onSelect, onClose }) => (
-  <AlertDialog open onOpenChange={onClose}>
-    <AlertDialogContent className="bg-slate-900 border-slate-700">
-      {/* Tag selection UI */}
-    </AlertDialogContent>
-  </AlertDialog>
-);
-
-const RoleSelectorModal = ({ roles, selectedRoles, onSelect, onClose }) => (
-  <AlertDialog open onOpenChange={onClose}>
-    <AlertDialogContent className="bg-slate-900 border-slate-700">
-      {/* Role selection UI */}
-    </AlertDialogContent>
-  </AlertDialog>
-);
 
 
-
-const AccessCodeModal = ({ tag, onSubmit, onClose }) => {
-  const [code, setCode] = useState("");
-  return (
-    <AlertDialog open onOpenChange={onClose}>
-      <AlertDialogContent className="bg-slate-900 border-slate-700">
-        {/* Access code input UI */}
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-};
-
-export default CollaborationForm;
+      );
+    }
+           
+export default CollaborationForm ;

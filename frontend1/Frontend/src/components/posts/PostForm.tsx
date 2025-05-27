@@ -40,7 +40,8 @@ const PostForm = ({onClose} : PostFormProps) => {
 
    const [isLoading, setIsLoading] = useState(true);
 
-     const communities = useRecoilValue(communitiesState);
+    
+    const communities = useRecoilValue(communitiesState);
      const communityTags = useRecoilValue(communityTagsState);
      const selectedCommunity = useRecoilValue(selectedCommunityState);
      const { isValid, allPrivateTagsValid } = useRecoilValue(postFormValidationState);

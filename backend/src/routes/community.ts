@@ -26,6 +26,6 @@ communityRouter.post('/joinComm/:communityId', authMiddleware, joinCommunities);
 communityRouter.get('/getCommunities',authMiddleware , getAllCommunities )
 communityRouter.get('/:communityId/tags', authMiddleware, getCommunityTags )
 communityRouter.get('/:communityId/rules', authMiddleware, fetchingRulesById)
-
+communityRouter.post('/join', authMiddleware, joinCommunities)
 
 export default communityRouter;

@@ -10,6 +10,7 @@ import CreateTagDialog from "../community/CreateTagDialog";
 import { Suspense } from "react";
 import LoadingSpinner from "../Loading";
 import { Tag } from "@/types";
+import CollaborateDialog from "../collaboration/CollaborateDialog";
 
 
 const Navbar = () => {
@@ -34,9 +35,12 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center space-x-3">
+            <Suspense fallback={<LoadingSpinner />}>
+  <  CollaborateDialog       variant = "create" />
+</Suspense>
           
           <Suspense fallback={<LoadingSpinner />}>
-  <CreatePostDialog  />
+  <CreatePostDialog variant = "create" />
 </Suspense>
           
           <Button variant="ghost" size="icon" className="text-slate-300 hover:bg-slate-800">

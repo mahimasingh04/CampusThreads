@@ -76,7 +76,7 @@ export const postFormState = atom<PostFormState>({
   default: {
     title: '',
     content: '',
-    type: 'text',
+    type: 'post' ,
     imageUrl: '',
     linkUrl: '',
     isSubmitting: false,

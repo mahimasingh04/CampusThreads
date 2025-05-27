@@ -1,5 +1,5 @@
 // Define all types for the CampusThreads application
-
+export type PostType = 'post' | 'collaboration';
 export interface CommunityFormData {
   name: string;
   description: string;
@@ -53,6 +53,7 @@ export interface User {
     downvoteCount: number;
     commentCount: number;
     imageUrl?: string;
+    linkUrl? : string;
     tags: Tag[];
     isPrivate?: boolean;
    accessCode?: string | null;
@@ -130,6 +131,8 @@ export type NestedComment = Comment & {
 };
 
 export type CollaborationDetails = {
+  communityId : string;
+  postId :  string;
   eventName: string;
   eventDate: string;
   location: string;
@@ -213,7 +216,7 @@ export interface CommunityRule {
 export interface PostFormState {
   title: string;
   content: string;
-  type: 'text' | 'image' | 'link'; // assuming these are the possible types
+  type:  PostType; // assuming these are the possible types
   imageUrl: string;
   linkUrl: string;
   isSubmitting: boolean;

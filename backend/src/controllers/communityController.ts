@@ -105,65 +105,66 @@ export const createCommunities = async (req: Request, res: Response): Promise<vo
     }
 };
 export const joinCommunities = async(req: Request , res : Response): Promise<void> => {
-      
-   // does this community exists/
-   // if it exists join the user in that community 
-   // 
+ try {
+    const { communityId } = req.body;
+    const userId = req.userId;
+    if(!communityId || !userId) {
+        res.status(400).json({message : "communityId and userId are required"})
+        return;
+    }
 
-   try{
-        const {communityId } = req.params
-        const userId = req.userId; 
+      // Check if community exists
+    const communityExists = await prisma.community.findUnique({
+      where: { id: communityId }
+    }); 
 
-        if(! userId || !communityId) {
-            res.status(400).json("user Id and community Id are important")
-            return;
+    if (!communityExists) {
+      res.status(404).json({ message: "Community not found" });
+      return;
+    }
+     // check if the user is already a member of the community
+     const existingMembership = await prisma.userCommunity.findUnique({
+      where: {
+        userId_communityId: {
+            userId: userId as string,
+          communityId
         }
+      }
+    });
 
-        const existingMembership = await prisma.userCommunity.findUnique({
-            where : {
-                userId_communityId: {
-                    userId,
-                    communityId,
-                  },
-            }
-        })
 
-        if( existingMembership ) {
-            res.status(400).json({  message: "User is already a member of this community"})
+    if (existingMembership) {
+        res.status(400).json({ message: "User is already a member of this community" });
+        return;
+    }
+
+
+ const result = await prisma.$transaction([
+      prisma.userCommunity.create({
+        data: {
+          userId : userId as string, // Ensure userId is a string
+          communityId
         }
+      }),
+      prisma.community.update({
+        where: { id: communityId },
+        data: { membersCount: { increment: 1 } }
+      })
+    ]);
 
-        const newMembership = await prisma.$transaction([
-            prisma.userCommunity.create({
-                data: {
-                    userId,
-                    communityId,
-                },
-            }),
-            prisma.community.update({
-                where: { id: communityId },
-                data: {
-                    membersCount : {
-                        increment: 1,
-                    },
-                },
-            }),
-        ])
-          
-        res.status(201).json({
-            status: "success",
-            message: "User joined the community successfully",
-            data: newMembership,
-          });
+    res.status(201).json({
+      message: 'Successfully joined community',
+      community: result[1]
+    });
 
-   }catch(error) {
-    console.error("Error joining community:", error);
-    res.status(500).json({ message: "Internal server error" });
-   }
- 
-
-
+    }catch(error){
+    console.error('Error joining community:', error);  
+    res.status(500).json({ 
+        status: "error",
+        message: 'Internal server error' 
+    });
 }
-
+}
 
 
 

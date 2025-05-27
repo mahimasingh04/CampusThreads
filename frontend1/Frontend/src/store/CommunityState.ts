@@ -104,7 +104,51 @@ export const communityDataState = selector<CommunityData | null>({
 });
 
 
+export const userCommunitiesState = selector<string[]>({
+  key: 'userCommunitiesState',
+  get: async () => {
+    try {
+      const communities = await fetchUserCommunities();
+      return communities.map(c => c.id);
+    } catch (error) {
+      console.error('Failed to fetch user communities:', error);
+      return [];
+    }
+  },
+});
+
+// Loading state
+export const communitiesLoadingState = atom<boolean>({
+  key: 'communitiesLoadingState',
+  default: false,
+});
+
+// Error state
+export const communitiesErrorState = atom<string>({
+  key: 'communitiesErrorState',
+  default: '',
+});
 
 
+// Community actions
+export const communityActions = {
+  joinCommunity: async (communityId: string) => {
+    try {
+      await joinCommunityAPI(communityId);
+      return true;
+    } catch (error) {
+      throw new Error('Failed to join community');
+    }
+  },
+
+  leaveCommunity: async (communityId: string) => {
+    try {
+      await leaveCommunityAPI(communityId);
+      return true;
+    } catch (error) {
+      throw new Error('Failed to leave community');
+    }
+  },
+};
 
 
