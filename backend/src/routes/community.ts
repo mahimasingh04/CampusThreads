@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { generateToken } from "../utils/jwt";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client"; 
-import { createCommunities, joinCommunities, getCommunityDetailsById, getAllCommunities, fetchingRulesById } from "../controllers/communityController";
+import { createCommunities, joinCommunities, getCommunityDetailsById, getAllCommunities, fetchingRulesById, leaveCommunity } from "../controllers/communityController";
 import { authMiddleware } from "../middleware/authenticateUser";
 import { isCommunityModerator } from "../middleware/AuthoriseMods";
 import { createTag, getCommunityTags } from "../controllers/tagController";
@@ -27,5 +27,6 @@ communityRouter.get('/getCommunities',authMiddleware , getAllCommunities )
 communityRouter.get('/:communityId/tags', authMiddleware, getCommunityTags )
 communityRouter.get('/:communityId/rules', authMiddleware, fetchingRulesById)
 communityRouter.post('/join', authMiddleware, joinCommunities)
+communityRouter.post('/leave', authMiddleware, leaveCommunity)
 
 export default communityRouter;

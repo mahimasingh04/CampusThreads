@@ -167,7 +167,70 @@ export const joinCommunities = async(req: Request , res : Response): Promise<voi
 }
 
 
+export const leaveCommunity = async(req: Request, res: Response) : Promise<void> => {
+    try{
+       const {communityId} = req.body
+       const userId =  req.userId;
 
+       if(!communityId && !userId) {
+          res.status(400).json({message : "communityId and userId are required"})
+        return;
+       }
+
+       //leave community 
+         // Check if community exists
+    const communityExists = await prisma.community.findUnique({
+      where: { id: communityId }
+    }); 
+
+    if (!communityExists) {
+      res.status(404).json({ message: "Community not found" });
+      return;
+    }
+     // check if the user is already a member of the community
+     const existingMembership = await prisma.userCommunity.findUnique({
+      where: {
+        userId_communityId: {
+            userId: userId as string,
+          communityId
+        }
+      }
+    });
+
+
+    if (!existingMembership) {
+        res.status(400).json({ message: "User has not joined the community yet" });
+        return;
+    }
+    const result = await prisma.$transaction([
+        prisma.userCommunity.delete({
+            where: {
+                userId_communityId: {
+                    userId: userId as string,
+                    communityId
+                }
+            }
+        }),
+         prisma.community.update({
+        where: { id: communityId },
+        data: { membersCount: { decrement : 1 } }
+      })
+
+    ])
+
+    res.status(201).json({
+      message: 'Successfully left the community',
+      community: result[1]
+    });
+
+    }catch(error) {
+       console.error('Error joining community:', error);  
+    res.status(500).json({ 
+        status: "error",
+        message: 'Internal server error' 
+    });
+    }
+}
 
 
 
