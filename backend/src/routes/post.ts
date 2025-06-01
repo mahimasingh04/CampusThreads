@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import { createPosts, viewPost, getPostByCommuityName, deletePost, updatePost, sharePost, savePost, getSavedPosts } from "../controllers/postController";
 import upload from "../middleware/multerConfig";
 import { authMiddleware } from "../middleware/authenticateUser";
+import { createCollabPost } from "../controllers/collaborationPost";
 
 const prisma = new PrismaClient(); 
 
@@ -14,8 +15,8 @@ const postRouter = express.Router()
 // Create a post with specific content type (TEXT, IMAGES, VIDEOS, POLLS)
 // The :type parameter specifies the content type
 // For IMAGES and VIDEOS, the file is uploaded using multer
-postRouter.post("/createPost/:communityName/:type", authMiddleware, upload.single("file"), createPosts);
 
+postRouter.post("/createPost/collabPost", authMiddleware, createCollabPost);
 // View a specific post
 postRouter.get("/viewPost/:communityName/:postTitle", viewPost);
 

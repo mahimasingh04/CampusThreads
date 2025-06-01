@@ -39,7 +39,7 @@ app.use(cookieParser());
 app.use("/api/user", userRouter);
 app.use("/api/community", communityRouter);
 app.use("/api/tags", tagRouter);
-
+app.use("/api/posts", postRouter);
 
 const port = process.env.PORT || 3000;
 

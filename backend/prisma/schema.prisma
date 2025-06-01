@@ -27,7 +27,11 @@ enum ContentType {
   POLLS
 }
 
-
+enum CollaborationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
    
 
 model User {
@@ -44,12 +48,13 @@ model User {
   communities UserCommunity[]
   customFeeds CustomFeed[]
   savedPosts  SavedPost[]
-  hackathonPosts HackathonPost[]    @relation("UserPosts")
-  joinRequests  Request[] @relation("UserRequests")
+  hackathonPosts CollaborationPost[]    @relation("UserPosts")
   comments  Comment[]
   userVisits   communityVisit[]
   moderator  CommunityModerator[]
    createdTags  Tag[]
+
+  CollaborationApplicant CollaborationApplicant[]
 }
 
 model Post {
@@ -71,6 +76,8 @@ model Post {
     commentCount  Int  @default(0)
      createdAt  DateTime  @default(now())
      updatedAt  DateTime?  @updatedAt
+      isCollaboration Boolean      @default(false)
+     collaboration  CollaborationPost?  // 1:1 relation
 }
 
 model Community {
@@ -89,6 +96,7 @@ model Community {
   customFeeds CustomFeedCommunity[]
   communityVisits communityVisit[]
   moderators   CommunityModerator[]
+
 
   
 }
@@ -161,32 +169,41 @@ model SavedPost {
   @@unique([userId, postId])
 }
 
-model HackathonPost {
-  id             String     @id @default(uuid())
-  title          String     // "Need 3 devs for ETHGlobal!"
-  description    String     // Detailed info about the hackathon
-  location       String     // "Online" or "MIT Campus"
-  techStack      String[]   // ["React", "Solidity", "AI"]
-  slotsTotal     Int        // Total slots needed (e.g., 5)
-  slotsFilled    Int        @default(0) // Starts at 0
-  genderReq      Json?      // { girls: 2, boys: 3 } (optional)
-  isActive       Boolean    @default(true) // Until slotsFilled == slotsTotal
-  createdAt      DateTime   @default(now())
-  updatedAt     DateTime?  @updatedAt 
-  author         User       @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
-  authorId       String
-  requests       Request[]  // Join requests for this post
+model CollaborationPost {
+  id              String       @id @default(uuid())
+  post            Post         @relation(fields: [postId], references: [id])
+  postId          String       @unique
+  eventName       String
+  eventDate       DateTime
+  location        String?
+  eventLink       String?
+  description     String
+  rolesNeeded     RolesNeed[]
+  totalSpots      Int
+  spotsLeft       Int
+  filledSpots     Int          @default(0)
+  applicants      CollaborationApplicant[]
+  User User[] @relation("UserPosts")
 }
 
-model Request {
-  id          String   @id @default(uuid())
-  hackathonpost        HackathonPost    @relation(fields: [hackathonpostId], references: [id], onDelete: Cascade)
-  hackathonpostId      String
-  user        User     @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
+model RolesNeed {
+  id          Int      @id @default(autoincrement())
+  name        String
+  collabPost  CollaborationPost? @relation(fields: [collabPostId], references: [id])
+  collabPostId String?
+}
+
+model CollaborationApplicant {
+  id          String        @id @default(uuid())
+  collaborationPost  CollaborationPost @relation(fields: [collaborationPostId], references: [id])
+  collaborationPostId String
+  user        User          @relation(fields: [userId], references: [id])
   userId      String
-  status      String   @default("PENDING") // "PENDING" | "ACCEPTED" | "REJECTED"
-  createdAt   DateTime @default(now())
-  @@unique([hackathonpostId, userId])
+  status      CollaborationStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  // Ensures one application per user per post
+  @@unique([collaborationPostId, userId])
 }
 
 
