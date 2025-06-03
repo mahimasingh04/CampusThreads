@@ -1,12 +1,8 @@
 import { Request, Response } from "express";
-
 import { PrismaClient, ContentType } from "@prisma/client"; 
-
+import { sendToUser, broadcastToPostRoom  } from "../utils/ws";
 
 const prisma = new PrismaClient();
-
-
-
 
 export const createCollabPost = async(req: Request, res: Response): Promise<void> => {
     try {
@@ -133,3 +129,58 @@ export const createCollabPost = async(req: Request, res: Response): Promise<void
         });
     }
 };
+
+
+export const joinRequest = async(req: Request, res: Response) : Promise<void> => {
+      const { postId } = req.params;
+   const  userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    try {
+      //check if spotsLeft > 0 or not 
+      const post =  await prisma.collaborationPost.findUnique({
+        where : {id: postId},
+        include : {post: true}
+      })
+      if(!post) {
+        res.status(404).json({error: 'Post not found'});
+        return;
+      }
+
+      if(post.spotsLeft <=0 ) {
+        res.status(400).json({error: "No spots left"});
+        return;
+      }
+      
+      //create request 
+      const request  = await prisma.collaborationApplicant.create({
+        data:{
+            collaborationPostId : postId,
+            userId: userId,
+            status: 'PENDING'
+        }
+      })
+
+      //create notification
+
+      const notification = await prisma.notification.create({
+        data: {
+            userId: post.post.authorId, // Notify post owner
+        type: 'JOIN_REQUEST',
+        content: `New join request for ${post.post.title} from ${userId}`,
+        relatedId: request.id
+        }
+      });
+
+    sendToUser(post.post.authorId, {
+    type: 'NEW_REQUEST',
+    data: notification
+    });
+    res.status(201).json(request);
+
+    }catch(error) {
+        res.status(500).json({ error: 'Failed to create request' });
+    }
+}

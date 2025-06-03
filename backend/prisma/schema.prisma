@@ -32,7 +32,13 @@ enum CollaborationStatus {
   ACCEPTED
   REJECTED
 }
-   
+
+
+enum NotificationType {
+  JOIN_REQUEST
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+}
 
 model User {
   id          String      @id @default(uuid())
@@ -53,7 +59,7 @@ model User {
   userVisits   communityVisit[]
   moderator  CommunityModerator[]
    createdTags  Tag[]
-
+  notifications  Notification[]
   CollaborationApplicant CollaborationApplicant[]
 }
 
@@ -237,4 +243,18 @@ model Comment{
   user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
   content  String
 
+}
+
+model Notification {
+  id           String           @id @default(uuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id])
+  type         NotificationType
+  content      String
+  relatedId    String?  // CollaborationApplicant ID
+  isRead       Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
 }
