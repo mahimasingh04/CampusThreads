@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient, ContentType } from "@prisma/client"; 
 import { sendToUser, broadcastToPostRoom  } from "../utils/ws";
+import { useRouteId } from "react-router/dist/lib/hooks";
 
 const prisma = new PrismaClient();
 
@@ -184,3 +185,77 @@ export const joinRequest = async(req: Request, res: Response) : Promise<void> =>
         res.status(500).json({ error: 'Failed to create request' });
     }
 }
+
+export const handleRequest =  async(req: Request,res: Response) : Promise<void> => {
+   const {requestId} = req.params
+   const {status} = req.body
+   const userId = req.userId
+
+   try {
+    const request= await prisma.collaborationApplicant.findUnique({
+        where: {id: requestId},
+        include: {
+            collaborationPost:{
+                include: {post: true}
+            }
+        }
+    })
+
+    if(!request) {
+        res.status(404).json({error: 'Request not found'})
+        return;
+    }
+
+    //verify your 
+     if ( request?.collaborationPost.post.authorId === userId) {
+     res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const updatedRequest = await prisma.collaborationApplicant.update({
+        where: {id: requestId},
+        data : {status}
+    });
+
+    let updatedPost;
+    if(status === 'ACCEPTED') {
+        updatedPost = await prisma.collaborationPost.update({
+            where: { id : request?.collaborationPostId},
+            data: {
+                filledSpots: {
+                    increment: 1
+                },
+                spotsLeft:{decrement: 1}
+            }
+        });
+
+        broadcastToPostRoom(request.collaborationPostId,{
+            type: 'SPOTS_UPDATE',
+            data: {
+                filledSpots: updatedPost.filledSpots,
+                spotsLeft: updatedPost.spotsLeft
+            }
+        });
+    }
+
+    //create Notifications for applicants 
+
+    const notification = await prisma.notification.create({
+        data : {
+            userId: request.userId,
+            type: status === 'ACCEPTED' ? 'REQUEST_ACCEPTED': 'REQUEST_REJECTED',
+            content: `Your request was ${status.toLowerCase()}`,
+            relatedId : request.id
+        }
+    });
+    // Send notification to applicant
+    sendToUser(request.userId, {
+      type: 'REQUEST_UPDATE',
+      data: notification
+    });
+    
+    res.json({ request: updatedRequest, post: updatedPost });
+
+   }catch(error) {
+      res.status(500).json({error:'Failed to process'});
+   }
+};
