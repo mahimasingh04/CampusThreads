@@ -115,3 +115,40 @@ export  const logoutController =  async(req : Request, res:  Response) => {
   }
 
 
+export const profileSetup = async(req: Request,res: Response) : Promise<void> => {
+   try {
+    const userId = req.userId
+    const {name , college ,bio , location, Github , linkedIn, Portfolio, Twitter}= req.body
+    if(!userId) {
+      res.status(411).json({message :"you are not authenticated"})
+      return;
+    }
+
+    const profile = await prisma.user.update({
+      where : {
+        id : userId
+      },
+      data: {
+        name ,
+        college,
+        bio,
+        location, 
+        Github,
+        linkedIn ,
+        Portfolio  ,
+        Twitter,
+      }
+    })
+
+    res.status(200).json({
+      message: "user profile completed",
+      data: profile
+    })
+  
+   }catch(Error) {
+     res.status(500).json({ 
+            status: "error",
+            message: 'Internal server error ' 
+        });
+   }
+}

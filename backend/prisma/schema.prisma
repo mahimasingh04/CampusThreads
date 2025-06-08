@@ -45,9 +45,12 @@ model User {
   email       String?     @unique
   bio         String?
   name        String 
-  skills      String?
-  developerProfileLinks   String?
+  Github      String?
+  linkedIn    String?
+  Portfolio   String?
+  Twitter     String?
   college     String?
+  location    String?
   password    String
   role        Role        @default(USER) @map("role")
   post        Post[]
