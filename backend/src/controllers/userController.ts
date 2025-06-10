@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client"; // Import PrismaClient
 const prisma = new PrismaClient(); 
 
 
+
 export const registerController = async(req : Request, res: Response): Promise<void> => {
 
 
@@ -152,3 +153,4 @@ export const profileSetup = async(req: Request,res: Response) : Promise<void> =>
         });
    }
 }
+

@@ -57,7 +57,7 @@ app.use("/api/collaborate", collaborateRouter)
 // Make wsServer available globally
 
 
-server.listen(port, () => {
+app.listen(port, () => {
   console.log(`Server and websocket is running on http://localhost:${port}`);
   console.log(`CORS configured for origin: http://localhost:5173`);
 });

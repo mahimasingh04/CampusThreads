@@ -51,9 +51,9 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
  
 
 
-  export const joinCommunity = async (communityId: string): Promise<any> => {
+  export const joinCommunity = async (): Promise<any> => {
     try {
-      const response = await api.post(`/community/${communityId}/join`);
+      const response = await api.post(`/community/join`);
       return {
         success: true,
         user: response.data.user // Ensure your backend returns updated user
@@ -155,3 +155,4 @@ export const fetchCommunityRules =  async(communityId: string): Promise<Communit
     throw error;
   }
 }
+

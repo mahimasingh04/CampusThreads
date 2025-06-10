@@ -6,7 +6,12 @@ import { fetchCommunityRules } from "../repositories/RulesRepository";
 const prisma = new PrismaClient(); 
 
 
-
+interface CommunityData {
+  id: string;
+  name: string;
+  description: string | null;
+  MembersCount: number;
+}
 export const createCommunities = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, description, rules } = req.body;
@@ -78,7 +83,7 @@ export const createCommunities = async (req: Request, res: Response): Promise<vo
                 where: { id: ownerId },
                 data: { role: 'MODERATOR' }
             });
-
+             
             // Create moderator relationship
             await prisma.communityModerator.create({
                 data: {
@@ -158,9 +163,11 @@ export const joinCommunities = async(req: Request , res : Response): Promise<voi
     });
 
     }catch(error){
-    console.error('Error joining community:', error);  
+      console.error('Error joining community:', error); 
     res.status(500).json({ 
+         
         status: "error",
+         
         message: 'Internal server error' 
     });
 }
@@ -403,3 +410,27 @@ export const getAllCommunities = async (req: Request, res: Response) : Promise<v
   }
 
 
+export const getUserJoinedCommunities = async(req: Request, res: Response) : Promise<void> => {
+     const userId = req.userId
+     try{
+    const userCommunities = await prisma.userCommunity.findMany({
+      where: { userId },
+      select: {
+        community: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            membersCount: true,
+          },
+        },
+      },
+    });
+    const formattedCommunities = userCommunities.map(uc => uc.community);
+
+    res.json({ communities: formattedCommunities });
+    }catch(Error) {
+    console.error("Error fetching joined communities: ", Error);
+    res.status(500).json({ message: "Failed to get communities" });
+  }
+ }

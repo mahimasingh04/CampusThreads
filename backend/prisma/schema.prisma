@@ -105,9 +105,6 @@ model Community {
   customFeeds CustomFeedCommunity[]
   communityVisits communityVisit[]
   moderators   CommunityModerator[]
-
-
-  
 }
 
 model Rules {
