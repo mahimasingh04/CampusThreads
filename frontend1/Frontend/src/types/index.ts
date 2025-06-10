@@ -221,3 +221,10 @@ export interface PostFormState {
   linkUrl: string;
   isSubmitting: boolean;
 }
+
+export interface CommunityCard {
+  id: string;
+  name: string;
+  description: string;
+  membersCount: number;
+}

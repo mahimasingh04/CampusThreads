@@ -3,7 +3,7 @@
 
 import axios from "axios";
 
-import { Community, Tag, CommunitySummary, TagDetail, CommunityRule } from '@/types/index';
+import { Community, Tag, CommunitySummary, TagDetail, CommunityRule, CommunityCard } from '@/types/index';
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
@@ -156,3 +156,15 @@ export const fetchCommunityRules =  async(communityId: string): Promise<Communit
   }
 }
 
+export const fetchUserJoinedCommunities = async (
+ 
+): Promise<CommunityCard[]> => {
+  const res = await fetch(`/api/community/getJoinedCommunities`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch joined communities");
+  }
+
+  const data: { communities: CommunityCard[] } = await res.json();
+  return data.communities;
+};
