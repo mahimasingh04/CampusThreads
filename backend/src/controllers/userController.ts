@@ -80,7 +80,7 @@ export const signinController = async(req : Request, res: Response) : Promise<vo
       .status(200)
       .cookie("tokenInfo", token, {
         httpOnly: true,
-        sameSite: "none",
+        sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
       .json({
