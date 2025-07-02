@@ -168,3 +168,4 @@ export const fetchUserJoinedCommunities = async (
   const data: { communities: CommunityCard[] } = await res.json();
   return data.communities;
 };
+

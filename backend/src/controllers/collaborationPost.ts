@@ -179,6 +179,8 @@ export const joinRequest = async(req: Request, res: Response) : Promise<void> =>
     type: 'NEW_REQUEST',
     data: notification
     });
+       console.log(`[WS ➤ JOIN] sendToUser called for authorId=${post.post.authorId}`);
+
     res.status(201).json(request);
 
     }catch(error) {

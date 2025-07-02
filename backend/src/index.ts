@@ -10,10 +10,14 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import tagRouter from './routes/tag';
 import collaborateRouter from './routes/collaboration';
+import WebSocket from "ws";
 
 dotenv.config();
 
 const prisma = new PrismaClient();
+
+
+
 const app = express();
 const server = createServer(app);
 
@@ -39,25 +43,23 @@ app.options('*', (req, res) => {
 app.use(express.json());
 app.use(cookieParser());
 
+
+
 app.use("/api/user", userRouter);
 app.use("/api/community", communityRouter);
 app.use("/api/tags", tagRouter);
 app.use("/api/posts", postRouter);
+app.use("/api/collaborate", collaborateRouter);
+setupWebSocket(server);
 
 const port = process.env.PORT || 3000;
+
 
 console.log("database:", process.env.DATABASE_URL);
 
 
-
-// Initialize WebSocket
-setupWebSocket(server);
-app.use("/api/collaborate", collaborateRouter)
-
-// Make wsServer available globally
-
-
-app.listen(port, () => {
-  console.log(`Server and websocket is running on http://localhost:${port}`);
+server.listen(port, () => {
+  console.log(`Server (HTTP + WS) running on http://localhost:${port}`);
   console.log(`CORS configured for origin: http://localhost:5173`);
 });
+
