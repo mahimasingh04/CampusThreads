@@ -28,10 +28,7 @@ export const currentUserQuery = selector({
   },
 });
 // User's joined communities
-export const joinedCommunitiesState = atom<Community[]>({
-  key: 'joinedCommunitiesState',
-  default: [],
-});
+
 
 // Recently visited communities
 export const recentCommunitiesState = atom<Community[]>({

@@ -276,12 +276,11 @@ export const getCommunityDetailsById =  async(req: Request, res: Response): Prom
                         select: {
                             title: true,
                             content: true,
-                            contentType: true,
-                            tag: {
+                            
+                            tags: {
                                 select: {
-                                    name: true,
-                                    
-                                }
+        tag: { select: { name: true } }
+      }
                             },
                             author:{
                                 select: {
@@ -426,7 +425,7 @@ export const getUserJoinedCommunities = async(req: Request, res: Response) : Pro
         },
       },
     });
-    const formattedCommunities = userCommunities.map(uc => uc.community);
+    const formattedCommunities = userCommunities.map(uc => uc.community.id);
 
     res.json({ communities: formattedCommunities });
     }catch(Error) {

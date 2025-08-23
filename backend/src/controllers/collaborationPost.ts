@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient, ContentType } from "@prisma/client"; 
+import { PrismaClient } from "@prisma/client"; 
 import { sendToUser, broadcastToPostRoom  } from "../utils/ws";
 import { useRouteId } from "react-router/dist/lib/hooks";
 
@@ -13,12 +13,12 @@ export const createCollabPost = async(req: Request, res: Response): Promise<void
             eventDate, 
             location, 
             communityId, 
-            description,  // Fixed typo (was 'desription')
+            description,  
             rolesNeeded, 
             eventLink,
             totalSpots, 
             tags, 
-            accessCode   // For private tags
+            accessCodes   // For private tags
         } = req.body;
 
         // 2. Authentication check
@@ -43,37 +43,44 @@ export const createCollabPost = async(req: Request, res: Response): Promise<void
             return;
         }
 
-        const tagName = tags;
-        const tag = await prisma.tag.findUnique({
-            where: { 
-                name_communityId: { 
-                    name: tagName, 
-                    communityId 
-                } 
-            }
-        });
+        const tagNames: string[] = Array.isArray(tags) ? tags : [tags];
+    const codeArr: string[] = accessCodes
+      ? Array.isArray(accessCodes) ? accessCodes : [accessCodes]
+      : [];
 
-        // 5. Handle tag not found
-        if (!tag) {
-            res.status(404).json({ error: `Tag '${tagName}' not found in this community` });
-            return;
-        }
+        
+        if (codeArr.length && codeArr.length !== tagNames.length) {
+      res.status(400).json({ error: 'Access codes must align with tags' });
+      return;
+    }
+const validTags: { id: string; name: string; description: string; isPublic: boolean; accessCode: string | null; communityId: string; createdBy: string; }[] = [];
 
-        // 6. Private tag validation
-        if (!tag.isPublic) {
-            if (!accessCode) {
-                res.status(403).json({ 
-                    error: `Access code required for private tag '${tagName}'` 
-                });
-                return;
-            }
-            if (accessCode !== tag.accessCode) {
-                res.status(403).json({ 
-                    error: `Invalid access code for tag '${tagName}'` 
-                });
-                return;
-            }
+    for (let i = 0; i < tagNames.length; i++) {
+      const name = tagNames[i];
+      const code = codeArr[i];
+
+      const tag = await prisma.tag.findFirst({
+        where: {
+          name,
+          communityId
         }
+      });
+
+      if (!tag) {
+        res.status(404).json({ error: `Tag '${name}' not found in this community` });
+        return;
+      }
+
+      if (!tag.isPublic) {
+        if (!code || code !== tag.accessCode) {
+          res.status(403).json({ error: `Invalid access code for private tag '${name}'` });
+          return;
+        }
+      }
+
+      validTags.push(tag);
+    }
+
 
         // 7. Create post and collaboration in transaction
         const result = await prisma.$transaction(async (prisma) => {
@@ -82,10 +89,15 @@ export const createCollabPost = async(req: Request, res: Response): Promise<void
                 data: {
                     title: eventName,
                     content: description,
-                    contentType: ContentType.TEXT,
                     authorId: userId,
                     communityId,
-                    tagId: tag.id,
+                    tags : {
+            create: validTags.map(tag => ({
+              tag: {
+                connect: { id: tag.id }
+              }
+            }))
+          },
                     isCollaboration: true,
                 }
             });
@@ -209,8 +221,9 @@ export const handleRequest =  async(req: Request,res: Response) : Promise<void> 
     }
 
     //verify your 
-     if ( request?.collaborationPost.post.authorId === userId) {
+     if ( request?.collaborationPost.post.authorId !== userId) {
      res.status(403).json({ error: 'Unauthorized' });
+     return;
     }
 
     const updatedRequest = await prisma.collaborationApplicant.update({

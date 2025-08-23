@@ -20,7 +20,7 @@ enum Role {
   UNKNOWN @map("UNKNOWN")
 }
 
-enum ContentType {
+enum MediaType {
   TEXT
   IMAGES
   VIDEOS
@@ -70,14 +70,13 @@ model Post {
      id   String   @id @default(uuid())
      title  String
      content  String
-     contentType    ContentType
+     media       Media[]
      published Boolean   @default(false)
      author    User      @relation(fields: [authorId] , references: [id], onDelete: Cascade)
      authorId   String 
      communityId String
      community  Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
-     tagId   String
-     tag  Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+    tags PostTag[]
      savedBy    SavedPost[]
     upvotes  Int    @ default(0)
     downvotes  Int   @ default(0)
@@ -87,6 +86,28 @@ model Post {
      updatedAt  DateTime?  @updatedAt
       isCollaboration Boolean      @default(false)
      collaboration  CollaborationPost?  // 1:1 relation
+
+     @@index([authorId])
+}
+
+model PostTag{
+   id     String @id @default(uuid())
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId  String
+
+  @@unique([postId, tagId]) // prevent duplicate tag for same post
+}
+
+model Media {
+   id        String   @id @default(uuid())
+  url       String
+  type      MediaType
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime @default(now())
 }
 
 model Community {
@@ -117,7 +138,7 @@ model Rules {
 }
 model Tag {
   id            String     @id @default(uuid())
-  name          String
+  name          String      @unique
   description   String
   isPublic      Boolean    @default(true)
   accessCode    String?    @unique
@@ -125,7 +146,7 @@ model Tag {
   community     Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
   createdBy     String
   creator       User       @relation(fields: [createdBy], references: [id])
-  posts         Post[]
+  posts         PostTag[]
 
    @@unique([name, communityId])
     @@unique([id, accessCode]) // Important for validation

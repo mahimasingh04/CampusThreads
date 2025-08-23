@@ -26,7 +26,7 @@ communityRouter.post('/join', authMiddleware, joinCommunities);
 communityRouter.get('/getCommunities',authMiddleware , getAllCommunities )
 communityRouter.get('/:communityId/tags', authMiddleware, getCommunityTags )
 communityRouter.get('/:communityId/rules', authMiddleware, fetchingRulesById)
-communityRouter.get('/getJoinedCommunities', authMiddleware, getUserJoinedCommunities)
+communityRouter.get('/getJoinedCommunities/me', authMiddleware, getUserJoinedCommunities)
 communityRouter.post('/leave', authMiddleware, leaveCommunity)
 
 export default communityRouter;

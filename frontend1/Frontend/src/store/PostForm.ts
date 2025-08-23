@@ -24,6 +24,11 @@ export const communitiesState = selector<CommunitySummary[]>({
   },
 })
 
+export const allCommunitiesState = atom<CommunitySummary[]>({
+    key: 'allCommunitiesState',
+    default: [],
+});
+
 export const communityRulesState = selector<CommunityRule[]>({
   key: 'communityRulesState',
   get: async ({ get }) => {

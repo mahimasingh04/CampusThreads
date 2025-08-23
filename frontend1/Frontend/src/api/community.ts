@@ -51,9 +51,11 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
  
 
 
-  export const joinCommunity = async (): Promise<any> => {
+  export const joinCommunity = async (communityId: string): Promise<any> => {
     try {
-      const response = await api.post(`/community/join`);
+      const response = await api.post(`/community/join` , {
+        communityId
+      });
       return {
         success: true,
         user: response.data.user // Ensure your backend returns updated user
@@ -66,7 +68,7 @@ const handleApiError = (error: unknown, defaultMessage: string) => {
 
   export const leaveCommunity = async (communityId: string): Promise<any> => {
     try {
-      const response = await api.post(`/community/${communityId}/leave`);
+      const response = await api.post(`/community/leave`, {communityId});
       return {
         succes : true,
         user : response.data.user
@@ -169,3 +171,15 @@ export const fetchUserJoinedCommunities = async (
   return data.communities;
 };
 
+export const getUserJoinedCommunities = async (): Promise<string[]> => {
+    const response = await fetch(`/api/community/getJoinedCommunities/me`);
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch user communities');
+    }
+    const data = await response.json();
+    // Assuming the backend returns an object like { communityIds: ["id1", "id2"] }
+    return data.communityIds || []; 
+};
+// idhr pe type define krna hai 

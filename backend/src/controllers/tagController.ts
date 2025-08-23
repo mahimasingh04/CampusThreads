@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { PrismaClient, ContentType } from "@prisma/client"; 
+import { PrismaClient} from "@prisma/client"; 
 import { tagsByCommunityId } from "../repositories/TagRepository";
 import { compareAccessCode } from "../utils/crypto";
 

@@ -1,9 +1,9 @@
 import { atom, DefaultValue, selector } from 'recoil';
 import {  Post, Community, Tag,  SortOption, Moderator, Rule } from '@/types';
 import {
-   fetchCommunityDetailsById
+   fetchCommunityDetailsById, getUserJoinedCommunities
   } from '@/api/Community';
-
+import { currentUserState } from './Atom';
 
 // fetch community data by ID
 // fetch communityPosts by communityId 
@@ -118,6 +118,32 @@ export const communitiesErrorState = atom<string>({
   default: '',
 });
 
+//communities available state - fetching from backend // Atom to store all communities available to join
+export const allCommunitiesState = atom<Community[]>({
+    key: 'allCommunitiesState',
+    default: [],
+});
+
+// Atom to store communities the user has joined
+export const userJoinedCommunitiesState = selector<string[]>({
+    key: 'userJoinedCommunitiesState',
+    get: async ({ get }) => {
+        const currentUser = get(currentUserState);
+
+        // Do not proceed with the API call if there's no logged-in user
+        if (!currentUser?.id) {
+            return [];
+        }
+
+        try {
+            const communities = await getUserJoinedCommunities();
+            return communities;
+        } catch (error) {
+            console.error("Failed to fetch user joined communities:", error);
+            return [];
+        }
+    },
+});
 
 
 
