@@ -12,7 +12,6 @@ export const currentUserState = atom<User | null>({
 });
 
 
-
 export const currentUserQuery = selector({
   key: 'currentUserQuery',
   get: async () => {

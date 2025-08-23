@@ -22,6 +22,7 @@ import Community from "./pages/Community";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <RecoilRoot>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       
@@ -29,10 +30,12 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+          
+              
+            <Route path="/" element=  {<LandingPage /> } />
             <Route path="/signin" element={<Login/>} />
             <Route path="/signup" element={<SignUp />} />
-           
+          
   
             <Route
               element={
@@ -72,6 +75,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </RecoilRoot>
 );
 
 export default App;

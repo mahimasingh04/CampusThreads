@@ -1,8 +1,10 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
-import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import * as cookie from 'cookie';
+import dotenv from 'dotenv';
 
+dotenv.config();
 // UserID -> WebSocket mapping
 const activeConnections = new Map<string, WebSocket>();
 
@@ -13,31 +15,63 @@ export const setupWebSocket = (server: http.Server) => {
   const wss = new WebSocketServer({ 
     server,
     // Skip unnecessary HTTP handling for WS requests
-    noServer: false
+    path : "/ws"
   });
 
   wss.on('connection', (ws, req) => {
     // 1. Extract cookies from request headers
     const cookies = req.headers.cookie;
-    if (!cookies) {
-      ws.close(1008, 'Missing authentication cookies');
-      return;
-    }
+     console.log(req.headers.cookie)
+    console.log('WS Connected');
+   if (!cookies) {
+  console.warn('No cookies in handshake; rejecting connection');
+  return ws.close(1008, 'Missing auth cookies');
+}
 
-    // 2. Parse cookies
-    const parsedCookies = cookie.parse(cookies);
-    const token = parsedCookies['accessToken']; // Use your actual cookie name
+   
 
-    if (!token) {
-      ws.close(1008, 'Authentication token missing');
-      return;
-    }
+  // 2. Parse cookies
+  
+  let parsedCookies: Record<string, string | undefined>;
+  try {
+    parsedCookies = cookie.parse(cookies);
+  } catch (err) {
+    console.error('Failed to parse cookies:', err);
+    ws.close(1008, 'Malformed cookies');
+    return;
+  }
+
+  const token = parsedCookies['tokenInfo'];
+  console.log('Extracted tokenInfo:', token);
+
+  if (!token) {
+    console.warn('No tokenInfo in parsed cookies');
+    ws.close(1008, 'Authentication token missing');
+    return;
+  }
+
+  if (!process.env.JWT_SECRET_KEY) {
+    console.error('JWT_SECRET not set in environment');
+    ws.close(1011, 'Server misconfiguration');
+    return;
+  }
+
+
+   
 
     // 3. Verify JWT
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-      const userId = decoded.id;
-   if (!process.env.JWT_SECRET) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!);
+      let userId: string | undefined;
+      if (typeof decoded === 'object' && decoded !== null && 'userId' in decoded) {
+        userId = (decoded as JwtPayload).userId as string;
+       
+      } else {
+        console.error('JWT payload does not contain userId');
+        ws.close(1008, 'Invalid authentication token');
+        return;
+      }
+   if (!process.env.JWT_SECRET_KEY) {
   console.error('Missing JWT_SECRET in environment variables');
   ws.close(1011, 'Server misconfiguration');
   return;
@@ -95,9 +129,12 @@ export const setupWebSocket = (server: http.Server) => {
 // Send to specific user
 export const sendToUser = (userId: string, data: object) => {
   const ws = activeConnections.get(userId);
+  
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(data));
+    console.log(`[WS ✔️] Message sent to userId=${userId}:`, data);
   }
+
 };
 
 // Broadcast to all users in a post room
@@ -108,4 +145,4 @@ export const broadcastToPostRoom = (postId: string, data: object) => {
   users.forEach(userId => {
     sendToUser(userId, data);
   });
-};
+  };
