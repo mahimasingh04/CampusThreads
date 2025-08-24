@@ -144,6 +144,14 @@ export type CollaborationDetails = {
   applicants: User[];
 };
 
+export type CollaborationApplicants = {
+    id : string;
+    CollabPostId: string;
+    userId: string;
+    status: "pending" | "accepted" | "rejected";
+    createdAt: string;
+}
+
 export type CollaborationRole = {
   id: string;
   name: string;

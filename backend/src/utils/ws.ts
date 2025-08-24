@@ -3,7 +3,6 @@ import http from 'http';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import * as cookie from 'cookie';
 import dotenv from 'dotenv';
-
 dotenv.config();
 // UserID -> WebSocket mapping
 const activeConnections = new Map<string, WebSocket>();
@@ -27,8 +26,6 @@ export const setupWebSocket = (server: http.Server) => {
   console.warn('No cookies in handshake; rejecting connection');
   return ws.close(1008, 'Missing auth cookies');
 }
-
-   
 
   // 2. Parse cookies
   
@@ -55,9 +52,6 @@ export const setupWebSocket = (server: http.Server) => {
     ws.close(1011, 'Server misconfiguration');
     return;
   }
-
-
-   
 
     // 3. Verify JWT
     try {
@@ -104,7 +98,7 @@ export const setupWebSocket = (server: http.Server) => {
           console.error('Error processing message:', e);
         }
       });
-
+      
       ws.on('close', () => {
         activeConnections.delete(userId);
         // Remove user from all rooms
@@ -136,7 +130,6 @@ export const sendToUser = (userId: string, data: object) => {
   }
 
 };
-
 // Broadcast to all users in a post room
 export const broadcastToPostRoom = (postId: string, data: object) => {
   const users = postRooms.get(postId);
