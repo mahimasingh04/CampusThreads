@@ -75,3 +75,8 @@ export const communityRulesState = atom<Record<string, Rule[]>>({
   key: 'communityRulesState',
   default: {},
 });
+
+export const joinedCommunitiesState = atom<Community[]>({
+  key: 'joinedCommunitiesState',
+  default: [],
+});

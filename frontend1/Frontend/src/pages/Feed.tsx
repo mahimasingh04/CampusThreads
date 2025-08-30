@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { useInView } from 'react-intersection-observer';
 import PostCard from '@/components/posts/PostCard';
-import { feedPostsState, feedLoadingState, feedPageState } from '@/store/Atom';
+import { feedPostsState, feedLoadingState, feedPageState } from '@/store/atom';
 import { mockPosts } from '@/mockData';
 import { Post } from '@/types';
 

@@ -172,7 +172,7 @@ export const fetchUserJoinedCommunities = async (
 };
 
 export const getUserJoinedCommunities = async (): Promise<string[]> => {
-    const response = await fetch(`/api/community/getJoinedCommunities/me`);
+    const response = await fetch(`/api/community/me/communities`);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -183,3 +183,4 @@ export const getUserJoinedCommunities = async (): Promise<string[]> => {
     return data.communityIds || []; 
 };
 // idhr pe type define krna hai 
+

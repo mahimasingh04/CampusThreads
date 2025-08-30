@@ -27,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-import { joinedCommunitiesState, communityRulesState } from '@/store/Atom'
+import { joinedCommunitiesState, communityRulesState } from '../store/atom'
 import { Community, RulesForm, } from '@/types';
 
 const formSchema = z.object({

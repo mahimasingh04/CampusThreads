@@ -10,9 +10,9 @@ import LandingPage from "./pages/LandingPage"
 import Login from "./pages/SignIn1";
 import SignUp from "./pages/SignUp1";
 import CreateCommunity  from "./pages/CreateCommunity";
-import CommunitySelection from "./pages/CommunitySelection";
 import { RecoilRoot } from "recoil";
 import Feed from "./pages/Feed";
+import Home from "./pages/Home";
 import MainLayout from "./components/layout/Mainlayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Community from "./pages/Community";
@@ -31,13 +31,12 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-          
-              
-            <Route path="/" element=  {<LandingPage /> } />
-            <Route path="/signin" element={<Login/>} />
-            <Route path="/signup" element={<SignUp />} />
-          
-  
+
+            <Route path="/" element=  { <LandingPage /> } />
+            <Route path="/signin" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+            <Route path="/signup" element={<ErrorBoundary><SignUp /></ErrorBoundary>} />
+
+
             <Route
               element={
                 <RecoilRoot>
@@ -53,12 +52,12 @@ const App = () => (
                 path="/feed"
                 element={
                   <ErrorBoundary>
-                    <Feed />
+                    <Feed/>
                   </ErrorBoundary>
                 }
               />
               <Route path="/create-community" element={<CreateCommunity />} />
-               <Route path="/community-selection" element={<CommunitySelection />} />
+               
               <Route
                 path="/community/:identifier"
                 element={

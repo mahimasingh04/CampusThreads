@@ -123,3 +123,39 @@ export const createPosts = async (req: Request, res: Response) : Promise<void> =
     }
 }
 
+export const feedPosts = async(req: Request, res:Response): Promise<void> =>{
+  try {
+    const userId = req.userId;
+    if(!userId){
+      res.status(400).json({"error" : "you are not authenticated"})
+    }
+
+    const communityIds = req.body;
+    if (!Array.isArray(communityIds) || communityIds.length === 0) {
+      res.status(400).json({ error: 'Invalid community IDs' });
+      
+    }
+
+    const posts = await prisma.post.findMany({
+      where: {
+        communityId: {
+          in: communityIds
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      include: {
+        author: true,
+        community: true,
+        tags: true,
+        media: true
+      }
+    })
+
+
+    res.status(200).json({ success: true, posts });
+  }catch(error: any){
+    res.status(500).json({ error: 'Server error', detail: error.message });
+  }
+}
